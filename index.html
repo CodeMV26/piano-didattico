@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generatore Piano Didattico 2026/2027</title>
-    <!-- Tailwind CSS per la grafica responsive -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Library SheetJS per esportazione Excel (.xlsx) -->
+    <!-- SheetJS per esportazione Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         .day-checkbox:checked + label {
@@ -28,14 +28,14 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale</h1>
-                    <p class="text-sm text-slate-500">Generatore automatico con OCR ed export Excel • v0.4</p>
+                    <p class="text-sm text-slate-500">Gestione ore doppie, OCR ed Export Excel • v0.5</p>
                 </div>
             </div>
         </header>
 
         <!-- Form Parametri -->
         <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-            <h2 class="text-lg font-semibold text-slate-900 border-b pb-3 border-slate-100">1. Dati Scuola, Calendario e Orari</h2>
+            <h2 class="text-lg font-semibold text-slate-900 border-b pb-3 border-slate-100">1. Dati Scuola, Calendario e Orario Settimanale</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -46,8 +46,6 @@
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo</label>
                     <input type="text" id="titoloLibro" placeholder="es. L'Amaldi per i licei scientifici" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
-                
-                <!-- DATE RIPRISTINATE -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Inizio Lezioni</label>
                     <input type="date" id="dataInizio" value="2026-09-15" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -58,53 +56,58 @@
                 </div>
             </div>
 
-            <!-- Ore settimanali e Selezione Giorni -->
-            <div class="space-y-3 pt-2">
-                <div class="flex items-center justify-between">
-                    <label class="block text-xs font-semibold text-slate-600 uppercase">Ore settimanali della materia</label>
-                    <input type="number" id="oreSettimanali" min="1" max="10" value="3" class="w-20 p-2 bg-slate-50 border border-slate-300 rounded-lg text-center text-sm font-bold text-blue-600">
-                </div>
-                
+            <!-- Selezione Giorni e Ore Doppie -->
+            <div class="space-y-4 pt-2 border-t border-slate-100">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Giorni di lezione della materia</label>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">1. Seleziona i giorni di lezione</label>
                     <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
                         <div>
-                            <input type="checkbox" id="giorno-1" value="1" class="hidden day-checkbox" checked>
+                            <input type="checkbox" id="giorno-1" value="1" class="hidden day-checkbox" checked onchange="aggiornaConfigurazioneOre()">
                             <label for="giorno-1" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Lun</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="giorno-2" value="2" class="hidden day-checkbox">
+                            <input type="checkbox" id="giorno-2" value="2" class="hidden day-checkbox" onchange="aggiornaConfigurazioneOre()">
                             <label for="giorno-2" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mar</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="giorno-3" value="3" class="hidden day-checkbox" checked>
+                            <input type="checkbox" id="giorno-3" value="3" class="hidden day-checkbox" checked onchange="aggiornaConfigurazioneOre()">
                             <label for="giorno-3" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mer</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="giorno-4" value="4" class="hidden day-checkbox">
+                            <input type="checkbox" id="giorno-4" value="4" class="hidden day-checkbox" onchange="aggiornaConfigurazioneOre()">
                             <label for="giorno-4" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Gio</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="giorno-5" value="5" class="hidden day-checkbox" checked>
+                            <input type="checkbox" id="giorno-5" value="5" class="hidden day-checkbox" onchange="aggiornaConfigurazioneOre()">
                             <label for="giorno-5" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Ven</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="giorno-6" value="6" class="hidden day-checkbox">
+                            <input type="checkbox" id="giorno-6" value="6" class="hidden day-checkbox" onchange="aggiornaConfigurazioneOre()">
                             <label for="giorno-6" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Sab</label>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Ripartizione Ore per Giorno -->
+                <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-semibold text-blue-900 uppercase">2. Quante ore fai in ciascun giorno selezionato?</label>
+                        <span id="totaleOreSettimanali" class="text-xs font-bold bg-blue-600 text-white px-2.5 py-1 rounded-full">Totale: 3 ore/settimana</span>
+                    </div>
+                    
+                    <div id="contenitoreOreGiorni" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <!-- Popolato dinamicamente via JS -->
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Modulo OCR Scansione Foto Indice (Multi-immagine) -->
+        <!-- Modulo OCR Indice -->
         <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3 border-slate-100">
                 <h2 class="text-lg font-semibold text-slate-900">2. Indice Libro (Foto o Incolla Testo)</h2>
                 <span id="fotoCount" class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">0 foto caricate</span>
             </div>
-
-            <p class="text-sm text-slate-500">Puoi scattare le foto dell'indice oppure incollare direttamente il testo estratto.</p>
 
             <div class="flex flex-wrap gap-3">
                 <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-4 py-2.5 rounded-xl border border-blue-200 text-sm inline-flex items-center space-x-2 transition-all">
@@ -117,12 +120,10 @@
                 </button>
             </div>
 
-            <!-- Anteprima Gallerie Foto -->
             <div id="gallery" class="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2"></div>
 
-            <!-- Status OCR -->
             <div id="ocrStatus" class="hidden text-sm p-3 bg-amber-50 text-amber-800 rounded-xl border border-amber-200">
-                Elaborazione OCR in corso...
+                Scansione OCR in corso...
             </div>
 
             <div>
@@ -131,7 +132,7 @@
             </div>
         </section>
 
-        <!-- Azioni e Tasto Genera -->
+        <!-- Azioni -->
         <div class="flex flex-col sm:flex-row gap-3">
             <button onclick="generaPiano()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all text-center">
                 Genera Piano Didattico Completo
@@ -149,7 +150,7 @@
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
                         <tr class="bg-slate-100 text-slate-700">
-                            <th class="p-3 border-b">N°</th>
+                            <th class="p-3 border-b">Ora N°</th>
                             <th class="p-3 border-b">Data</th>
                             <th class="p-3 border-b">Giorno</th>
                             <th class="p-3 border-b">Argomento / Unità Didattica</th>
@@ -166,6 +167,52 @@
     <script>
         let immaginiCaricate = [];
         let pianoGenerato = [];
+        const nomiGiorni = ["", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+
+        // Inizializzazione al caricamento pagina
+        window.onload = function() {
+            aggiornaConfigurazioneOre();
+        };
+
+        function aggiornaConfigurazioneOre() {
+            const contenitore = document.getElementById('contenitoreOreGiorni');
+            contenitore.innerHTML = '';
+            let totaleOre = 0;
+
+            for (let i = 1; i <= 6; i++) {
+                const chk = document.getElementById(`giorno-${i}`);
+                if (chk.checked) {
+                    const selectId = `ore-giorno-${i}`;
+                    const valorePrecedente = document.getElementById(selectId) ? document.getElementById(selectId).value : (i === 3 ? "2" : "1");
+                    
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-200';
+                    div.innerHTML = `
+                        <span class="text-xs font-semibold text-slate-700">${nomiGiorni[i]}</span>
+                        <div class="flex items-center space-x-1">
+                            <select id="${selectId}" onchange="calcolaTotaleOre()" class="bg-slate-50 border border-slate-300 rounded text-xs p-1 font-bold text-blue-600 focus:outline-none">
+                                <option value="1" ${valorePrecedente === "1" ? "selected" : ""}>1 Ora</option>
+                                <option value="2" ${valorePrecedente === "2" ? "selected" : ""}>2 Ore (Doppia)</option>
+                                <option value="3" ${valorePrecedente === "3" ? "selected" : ""}>3 Ore</option>
+                            </select>
+                        </div>
+                    `;
+                    contenitore.appendChild(div);
+                }
+            }
+            calcolaTotaleOre();
+        }
+
+        function calcolaTotaleOre() {
+            let totale = 0;
+            for (let i = 1; i <= 6; i++) {
+                const select = document.getElementById(`ore-giorno-${i}`);
+                if (select) {
+                    totale += parseInt(select.value);
+                }
+            }
+            document.getElementById('totaleOreSettimanali').innerText = `Totale: ${totale} ore/settimana`;
+        }
 
         function gestisciCaricamentoFoto(event) {
             const files = Array.from(event.target.files);
@@ -246,7 +293,6 @@
             const libro = document.getElementById('titoloLibro').value;
             const argomentiRaw = document.getElementById('argomentiInput').value;
             
-            // Lettura Date inserite dall'utente
             const valInizio = document.getElementById('dataInizio').value;
             const valFine = document.getElementById('dataFine').value;
 
@@ -258,16 +304,18 @@
             let dataCorrente = new Date(valInizio);
             const dataFine = new Date(valFine);
 
-            // Lettura giorni selezionati
-            const giorniSelezionati = [];
+            // Mappatura Giorni e Ore per Giorno
+            const mappaOreGiorni = {};
             for (let i = 1; i <= 6; i++) {
-                if (document.getElementById(`giorno-${i}`).checked) {
-                    giorniSelezionati.push(i);
+                const chk = document.getElementById(`giorno-${i}`);
+                if (chk && chk.checked) {
+                    const select = document.getElementById(`ore-giorno-${i}`);
+                    mappaOreGiorni[i] = select ? parseInt(select.value) : 1;
                 }
             }
 
-            if (giorniSelezionati.length === 0) {
-                alert("Seleziona almeno un giorno della settimana per le lezioni.");
+            if (Object.keys(mappaOreGiorni).length === 0) {
+                alert("Seleziona almeno un giorno di lezione.");
                 return;
             }
 
@@ -285,33 +333,40 @@
             }
 
             pianoGenerato = [];
-            let numLezione = 1;
+            let numOraTotale = 1;
             let argIndex = 0;
-
-            const giorniNomi = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
 
             while (dataCorrente <= dataFine) {
                 const dayOfWeek = dataCorrente.getDay();
                 
-                if (giorniSelezionati.includes(dayOfWeek)) {
+                if (mappaOreGiorni[dayOfWeek]) {
+                    const oreInQuestoGiorno = mappaOreGiorni[dayOfWeek];
                     const dataFormattata = dataCorrente.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const nomeGiorno = giorniNomi[dayOfWeek];
-                    
-                    let argomento = listaArgomenti[argIndex % listaArgomenti.length];
-                    let tipologia = (numLezione % 8 === 0) ? "Verifica Scritta" : ((numLezione % 4 === 0) ? "Esercitazione / Lab" : "Spiegazione");
+                    const nomeGiorno = nomiGiorni[dayOfWeek];
 
-                    pianoGenerato.push({
-                        numero: numLezione,
-                        data: dataFormattata,
-                        giorno: nomeGiorno,
-                        materia: materia,
-                        libro: libro,
-                        argomento: argomento,
-                        tipologia: tipologia
-                    });
+                    // Ciclo per gestire l'ora singola o le ore doppie nello stesso giorno
+                    for (let h = 1; h <= oreInQuestoGiorno; h++) {
+                        let argomento = listaArgomenti[argIndex % listaArgomenti.length];
+                        let tipologia = (numOraTotale % 8 === 0) ? "Verifica Scritta" : ((numOraTotale % 4 === 0) ? "Esercitazione / Lab" : "Spiegazione");
+                        
+                        let etichettaGiorno = nomeGiorno;
+                        if (oreInQuestoGiorno > 1) {
+                            etichettaGiorno += ` (Ora ${h}/${oreInQuestoGiorno})`;
+                        }
 
-                    numLezione++;
-                    if (numLezione % 2 === 0) argIndex++;
+                        pianoGenerato.push({
+                            numero: numOraTotale,
+                            data: dataFormattata,
+                            giorno: etichettaGiorno,
+                            materia: materia,
+                            libro: libro,
+                            argomento: argomento,
+                            tipologia: tipologia
+                        });
+
+                        numOraTotale++;
+                        if (numOraTotale % 2 === 0) argIndex++;
+                    }
                 }
                 
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
@@ -340,9 +395,9 @@
             if (pianoGenerato.length === 0) return;
 
             const datiExcel = pianoGenerato.map(item => ({
-                "N° Lezione": item.numero,
+                "N° Ora": item.numero,
                 "Data": item.data,
-                "Giorno": item.giorno,
+                "Giorno e Dettaglio": item.giorno,
                 "Materia": item.materia,
                 "Libro di Testo": item.libro,
                 "Argomento / Unità Didattica": item.argomento,
