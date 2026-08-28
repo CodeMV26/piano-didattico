@@ -28,7 +28,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale</h1>
-                    <p class="text-sm text-slate-500">Gestione ore doppie, OCR ed Export Excel • v0.5</p>
+                    <p class="text-sm text-slate-500">Calcolo Ore Effettive • Festività Nazionali • Indice Obbligatorio • v0.6</p>
                 </div>
             </div>
         </header>
@@ -39,12 +39,12 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Materia</label>
-                    <input type="text" id="materia" value="Fisica" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Materia *</label>
+                    <input type="text" id="materia" placeholder="es. Matematica, Fisica, Italiano..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo</label>
-                    <input type="text" id="titoloLibro" placeholder="es. L'Amaldi per i licei scientifici" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo *</label>
+                    <input type="text" id="titoloLibro" placeholder="es. Matematica.blu 2.0" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Inizio Lezioni</label>
@@ -91,12 +91,12 @@
                 <!-- Ripartizione Ore per Giorno -->
                 <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100 space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="block text-xs font-semibold text-blue-900 uppercase">2. Quante ore fai in ciascun giorno selezionato?</label>
+                        <label class="block text-xs font-semibold text-blue-900 uppercase">2. Ore svolte per ciascun giorno</label>
                         <span id="totaleOreSettimanali" class="text-xs font-bold bg-blue-600 text-white px-2.5 py-1 rounded-full">Totale: 3 ore/settimana</span>
                     </div>
                     
                     <div id="contenitoreOreGiorni" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        <!-- Popolato dinamicamente via JS -->
+                        <!-- Popolato dinamicamente -->
                     </div>
                 </div>
             </div>
@@ -105,14 +105,16 @@
         <!-- Modulo OCR Indice -->
         <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-3 border-slate-100">
-                <h2 class="text-lg font-semibold text-slate-900">2. Indice Libro (Foto o Incolla Testo)</h2>
+                <h2 class="text-lg font-semibold text-slate-900">2. Indice del Libro * (Foto OCR o Testo)</h2>
                 <span id="fotoCount" class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">0 foto caricate</span>
             </div>
+
+            <p class="text-xs text-slate-500">Incolla qui gli argomenti presi dall'indice del tuo libro di testo o usa la scansione foto. L'applicazione distribuirà <strong>solo ed esclusivamente questi argomenti</strong> nell'arco dell'anno.</p>
 
             <div class="flex flex-wrap gap-3">
                 <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-4 py-2.5 rounded-xl border border-blue-200 text-sm inline-flex items-center space-x-2 transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span>Aggiungi Foto Indice</span>
+                    <span>Scansiona Foto Indice</span>
                     <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="gestisciCaricamentoFoto(event)">
                 </label>
                 <button onclick="avviaOCRMultiplo()" id="btnOCR" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50" disabled>
@@ -127,8 +129,8 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Argomenti dell'indice (uno per riga)</label>
-                <textarea id="argomentiInput" rows="5" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono" placeholder="Incolla o inserisci gli argomenti qui..."></textarea>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Argomenti estratti dall'indice (un argomento per riga)</label>
+                <textarea id="argomentiInput" rows="6" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono" placeholder="Inserisci o incolla qui l'indice del tuo libro..."></textarea>
             </div>
         </section>
 
@@ -143,9 +145,21 @@
             </button>
         </div>
 
-        <!-- Tabella Risultati -->
+        <!-- Riepilogo Statistiche e Tabella Risultati -->
         <section id="risultatiSection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hidden space-y-4">
-            <h2 class="text-lg font-semibold text-slate-900">Anteprima Calendario Lezioni</h2>
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-900">Piano Didattico Calcolato</h2>
+                    <p id="subtitolioRisultato" class="text-xs text-slate-500"></p>
+                </div>
+                <!-- BOX RIEPILOGO ORE TOTALI -->
+                <div class="bg-blue-50 border border-blue-200 px-4 py-2 rounded-xl text-right">
+                    <span class="text-xs text-blue-700 font-semibold block uppercase">Ore Totali Effettive</span>
+                    <span id="badgeOreTotali" class="text-xl font-extrabold text-blue-900">0 Ore</span>
+                </div>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -153,7 +167,7 @@
                             <th class="p-3 border-b">Ora N°</th>
                             <th class="p-3 border-b">Data</th>
                             <th class="p-3 border-b">Giorno</th>
-                            <th class="p-3 border-b">Argomento / Unità Didattica</th>
+                            <th class="p-3 border-b">Argomento dal Libro</th>
                             <th class="p-3 border-b">Tipologia</th>
                         </tr>
                     </thead>
@@ -169,7 +183,25 @@
         let pianoGenerato = [];
         const nomiGiorni = ["", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
 
-        // Inizializzazione al caricamento pagina
+        // Elenco Festività Nazionali Italiane Standard (Mese-Giorno)
+        const festivitaFisse = [
+            "11-01", // Tutti i Santi
+            "12-08", // Immacolata Concezione
+            "12-25", // Natale
+            "12-26", // Santo Stefano
+            "01-01", // Capodanno
+            "01-06", // Epifania
+            "04-25", // Festa della Liberazione
+            "05-01", // Festa del Lavoro
+            "06-02"  // Festa della Repubblica
+        ];
+
+        // Festività mobili (es. Pasqua e Pasquetta 2027: 28 e 29 Marzo 2027)
+        const festivitaMobili = [
+            "2027-03-28", // Pasqua 2027
+            "2027-03-29"  // Pasquetta 2027
+        ];
+
         window.onload = function() {
             aggiornaConfigurazioneOre();
         };
@@ -177,7 +209,6 @@
         function aggiornaConfigurazioneOre() {
             const contenitore = document.getElementById('contenitoreOreGiorni');
             contenitore.innerHTML = '';
-            let totaleOre = 0;
 
             for (let i = 1; i <= 6; i++) {
                 const chk = document.getElementById(`giorno-${i}`);
@@ -262,7 +293,7 @@
             let testoComplessivo = '';
 
             for (let i = 0; i < immaginiCaricate.length; i++) {
-                status.innerText = `Scansione veloce pagina ${i + 1} di ${immaginiCaricate.length}...`;
+                status.innerText = `Scansione OCR pagina ${i + 1} di ${immaginiCaricate.length}...`;
                 
                 const formData = new FormData();
                 formData.append("base64Image", immaginiCaricate[i]);
@@ -288,16 +319,39 @@
             argomentiInput.value = testoComplessivo.trim();
         }
 
+        function isFesta(data) {
+            const mm = String(data.getMonth() + 1).padStart(2, '0');
+            const dd = String(data.getDate()).padStart(2, '0');
+            const mmdd = `${mm}-${dd}`;
+            const yyyymmdd = `${data.getFullYear()}-${mm}-${dd}`;
+
+            // Controllo festività fisse o mobili
+            return festivitaFisse.includes(mmdd) || festivitaMobili.includes(yyyymmdd);
+        }
+
         function generaPiano() {
-            const materia = document.getElementById('materia').value;
-            const libro = document.getElementById('titoloLibro').value;
-            const argomentiRaw = document.getElementById('argomentiInput').value;
+            const materia = document.getElementById('materia').value.trim();
+            const libro = document.getElementById('titoloLibro').value.trim();
+            const argomentiRaw = document.getElementById('argomentiInput').value.trim();
             
             const valInizio = document.getElementById('dataInizio').value;
             const valFine = document.getElementById('dataFine').value;
 
+            // VALIDAZIONI RIGIDE
+            if (!materia) {
+                alert("Inserisci il nome della materia.");
+                return;
+            }
+            if (!libro) {
+                alert("Inserisci il titolo del libro di testo.");
+                return;
+            }
+            if (!argomentiRaw) {
+                alert("ATTENZIONE: Inserisci gli argomenti presi dall'indice del libro (incolla il testo o usa la scansione delle foto). L'app genera il piano basandosi ESCLUSIVAMENTE sul tuo libro.");
+                return;
+            }
             if (!valInizio || !valFine) {
-                alert("Inserisci sia la data di inizio che la data di fine lezioni.");
+                alert("Inserisci le date di inizio e fine lezioni.");
                 return;
             }
 
@@ -319,18 +373,8 @@
                 return;
             }
 
-            // Parsing argomenti
-            let listaArgomenti = argomentiRaw.split(/[\n,]+/).map(a => a.trim()).filter(a => a.length > 0);
-            if (listaArgomenti.length === 0) {
-                listaArgomenti = [
-                    "Introduzione alla materia e ripasso",
-                    "Unità 1: Misura e grandezze fisiche",
-                    "Unità 2: Il movimento e la cinematica",
-                    "Unità 3: Le forze e la dinamica",
-                    "Unità 4: Energia e lavoro",
-                    "Verifica di recupero e consolidamento"
-                ];
-            }
+            // Parsing argomenti forniti DALL'UTENTE
+            let listaArgomenti = argomentiRaw.split('\n').map(a => a.trim()).filter(a => a.length > 0);
 
             pianoGenerato = [];
             let numOraTotale = 1;
@@ -339,12 +383,12 @@
             while (dataCorrente <= dataFine) {
                 const dayOfWeek = dataCorrente.getDay();
                 
-                if (mappaOreGiorni[dayOfWeek]) {
+                // Se è un giorno di lezione e NON è festivo
+                if (mappaOreGiorni[dayOfWeek] && !isFesta(dataCorrente)) {
                     const oreInQuestoGiorno = mappaOreGiorni[dayOfWeek];
                     const dataFormattata = dataCorrente.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     const nomeGiorno = nomiGiorni[dayOfWeek];
 
-                    // Ciclo per gestire l'ora singola o le ore doppie nello stesso giorno
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
                         let argomento = listaArgomenti[argIndex % listaArgomenti.length];
                         let tipologia = (numOraTotale % 8 === 0) ? "Verifica Scritta" : ((numOraTotale % 4 === 0) ? "Esercitazione / Lab" : "Spiegazione");
@@ -372,6 +416,10 @@
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
             }
 
+            // Aggiorna Interfaccia e Conteggio Ore Totali
+            document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
+            document.getElementById('subtitolioRisultato').innerText = `Materia: ${materia} • Libro: ${libro}`;
+
             // Render Tabella
             const corpo = document.getElementById('tabellaCorpo');
             corpo.innerHTML = '';
@@ -381,7 +429,7 @@
                     <td class="p-3 font-medium text-slate-500">${row.numero}</td>
                     <td class="p-3 font-semibold text-slate-800">${row.data}</td>
                     <td class="p-3 text-slate-600">${row.giorno}</td>
-                    <td class="p-3 text-slate-800">${row.argomento}</td>
+                    <td class="p-3 text-slate-800 font-medium">${row.argomento}</td>
                     <td class="p-3"><span class="px-2 py-1 text-xs rounded-full ${row.tipologia.includes('Verifica') ? 'bg-red-100 text-red-700 font-semibold' : 'bg-blue-100 text-blue-700'}">${row.tipologia}</span></td>
                 `;
                 corpo.appendChild(tr);
