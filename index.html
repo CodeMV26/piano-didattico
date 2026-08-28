@@ -1,4 +1,169 @@
-<script>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore Piano Didattico 2026/2027</title>
+    <!-- Tailwind CSS per la grafica responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library SheetJS per esportazione Excel (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        .day-checkbox:checked + label {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <!-- Header App -->
+        <header class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-3 rounded-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale</h1>
+                    <p class="text-sm text-slate-500">Generatore automatico con OCR ed export Excel • v0.4</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Form Parametri -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <h2 class="text-lg font-semibold text-slate-900 border-b pb-3 border-slate-100">1. Dati Scuola, Calendario e Orari</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Materia</label>
+                    <input type="text" id="materia" value="Fisica" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo</label>
+                    <input type="text" id="titoloLibro" placeholder="es. L'Amaldi per i licei scientifici" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                
+                <!-- DATE RIPRISTINATE -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Inizio Lezioni</label>
+                    <input type="date" id="dataInizio" value="2026-09-15" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Fine Lezioni</label>
+                    <input type="date" id="dataFine" value="2027-06-05" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <!-- Ore settimanali e Selezione Giorni -->
+            <div class="space-y-3 pt-2">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase">Ore settimanali della materia</label>
+                    <input type="number" id="oreSettimanali" min="1" max="10" value="3" class="w-20 p-2 bg-slate-50 border border-slate-300 rounded-lg text-center text-sm font-bold text-blue-600">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Giorni di lezione della materia</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        <div>
+                            <input type="checkbox" id="giorno-1" value="1" class="hidden day-checkbox" checked>
+                            <label for="giorno-1" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Lun</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-2" value="2" class="hidden day-checkbox">
+                            <label for="giorno-2" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mar</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-3" value="3" class="hidden day-checkbox" checked>
+                            <label for="giorno-3" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mer</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-4" value="4" class="hidden day-checkbox">
+                            <label for="giorno-4" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Gio</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-5" value="5" class="hidden day-checkbox" checked>
+                            <label for="giorno-5" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Ven</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-6" value="6" class="hidden day-checkbox">
+                            <label for="giorno-6" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Sab</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modulo OCR Scansione Foto Indice (Multi-immagine) -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3 border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-900">2. Indice Libro (Foto o Incolla Testo)</h2>
+                <span id="fotoCount" class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">0 foto caricate</span>
+            </div>
+
+            <p class="text-sm text-slate-500">Puoi scattare le foto dell'indice oppure incollare direttamente il testo estratto.</p>
+
+            <div class="flex flex-wrap gap-3">
+                <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-4 py-2.5 rounded-xl border border-blue-200 text-sm inline-flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Aggiungi Foto Indice</span>
+                    <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="gestisciCaricamentoFoto(event)">
+                </label>
+                <button onclick="avviaOCRMultiplo()" id="btnOCR" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50" disabled>
+                    Elabora OCR Foto
+                </button>
+            </div>
+
+            <!-- Anteprima Gallerie Foto -->
+            <div id="gallery" class="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2"></div>
+
+            <!-- Status OCR -->
+            <div id="ocrStatus" class="hidden text-sm p-3 bg-amber-50 text-amber-800 rounded-xl border border-amber-200">
+                Elaborazione OCR in corso...
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Argomenti dell'indice (uno per riga)</label>
+                <textarea id="argomentiInput" rows="5" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono" placeholder="Incolla o inserisci gli argomenti qui..."></textarea>
+            </div>
+        </section>
+
+        <!-- Azioni e Tasto Genera -->
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="generaPiano()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all text-center">
+                Genera Piano Didattico Completo
+            </button>
+            <button onclick="esportaExcel()" id="btnExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all hidden flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Esporta in Excel (.xlsx)</span>
+            </button>
+        </div>
+
+        <!-- Tabella Risultati -->
+        <section id="risultatiSection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hidden space-y-4">
+            <h2 class="text-lg font-semibold text-slate-900">Anteprima Calendario Lezioni</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700">
+                            <th class="p-3 border-b">N°</th>
+                            <th class="p-3 border-b">Data</th>
+                            <th class="p-3 border-b">Giorno</th>
+                            <th class="p-3 border-b">Argomento / Unità Didattica</th>
+                            <th class="p-3 border-b">Tipologia</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabellaCorpo" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
         let immaginiCaricate = [];
         let pianoGenerato = [];
 
@@ -7,36 +172,11 @@
             files.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    // Ridimensiona l'immagine per velocizzare drasticamente l'OCR
-                    ridimensionaFoto(e.target.result, 1200, (imgOttimizzata) => {
-                        immaginiCaricate.push(imgOttimizzata);
-                        aggiornaGalleria();
-                    });
+                    immaginiCaricate.push(e.target.result);
+                    aggiornaGalleria();
                 };
                 reader.readAsDataURL(file);
             });
-        }
-
-        // Funzione per ottimizzare il peso delle foto scattate da iPhone/Mac
-        function ridimensionaFoto(base64Str, maxWidth, callback) {
-            let img = new Image();
-            img.src = base64Str;
-            img.onload = () => {
-                let canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-
-                if (width > maxWidth) {
-                    height = Math.round((height * maxWidth) / width);
-                    width = maxWidth;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                let ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                callback(canvas.toDataURL('image/jpeg', 0.7)); // Compress a JPEG 70%
-            };
         }
 
         function aggiornaGalleria() {
@@ -75,20 +215,26 @@
             let testoComplessivo = '';
 
             for (let i = 0; i < immaginiCaricate.length; i++) {
-                status.innerText = `Inizializzazione OCR pagina ${i + 1} di ${immaginiCaricate.length}...`;
+                status.innerText = `Scansione veloce pagina ${i + 1} di ${immaginiCaricate.length}...`;
                 
-                const worker = await Tesseract.createWorker('ita', 1, {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const perc = Math.round(m.progress * 100);
-                            status.innerText = `Pagina ${i + 1} di ${immaginiCaricate.length}: scansione in corso (${perc}%)`;
-                        }
+                const formData = new FormData();
+                formData.append("base64Image", immaginiCaricate[i]);
+                formData.append("language", "ita");
+
+                try {
+                    const response = await fetch("https://api.ocr.space/parse/image", {
+                        method: "POST",
+                        headers: { "apikey": "helloworld" },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    if (result.ParsedResults && result.ParsedResults[0]) {
+                        testoComplessivo += result.ParsedResults[0].ParsedText + '\n';
                     }
-                });
-                
-                const ret = await worker.recognize(immaginiCaricate[i]);
-                testoComplessivo += ret.data.text + '\n';
-                await worker.terminate();
+                } catch (error) {
+                    console.error("Errore OCR:", error);
+                }
             }
 
             status.classList.add('hidden');
@@ -100,6 +246,19 @@
             const libro = document.getElementById('titoloLibro').value;
             const argomentiRaw = document.getElementById('argomentiInput').value;
             
+            // Lettura Date inserite dall'utente
+            const valInizio = document.getElementById('dataInizio').value;
+            const valFine = document.getElementById('dataFine').value;
+
+            if (!valInizio || !valFine) {
+                alert("Inserisci sia la data di inizio che la data di fine lezioni.");
+                return;
+            }
+
+            let dataCorrente = new Date(valInizio);
+            const dataFine = new Date(valFine);
+
+            // Lettura giorni selezionati
             const giorniSelezionati = [];
             for (let i = 1; i <= 6; i++) {
                 if (document.getElementById(`giorno-${i}`).checked) {
@@ -112,6 +271,7 @@
                 return;
             }
 
+            // Parsing argomenti
             let listaArgomenti = argomentiRaw.split(/[\n,]+/).map(a => a.trim()).filter(a => a.length > 0);
             if (listaArgomenti.length === 0) {
                 listaArgomenti = [
@@ -123,9 +283,6 @@
                     "Verifica di recupero e consolidamento"
                 ];
             }
-
-            let dataCorrente = new Date(2026, 8, 15);
-            const dataFine = new Date(2027, 5, 8);
 
             pianoGenerato = [];
             let numLezione = 1;
@@ -160,6 +317,7 @@
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
             }
 
+            // Render Tabella
             const corpo = document.getElementById('tabellaCorpo');
             corpo.innerHTML = '';
             pianoGenerato.forEach(row => {
@@ -198,3 +356,5 @@
             XLSX.writeFile(wb, `Piano_Didattico_${document.getElementById('materia').value}_2026_2027.xlsx`);
         }
     </script>
+</body>
+</html>
