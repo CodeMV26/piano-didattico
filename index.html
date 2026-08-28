@@ -2,423 +2,333 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pianificatore Didattico Fisica - Modena</title>
-    <!-- Tesseract.js v5 per OCR Gratuito Client-Side -->
-    <script src="https://unpkg.com/tesseract.js@v5.0.5/dist/tesseract.min.js"></script>
-    <!-- SheetJS (xlsx) per Esportazione Excel Gratuita Client-Side -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore Piano Didattico 2026/2027</title>
+    <!-- Tailwind CSS per la grafica responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library SheetJS per esportazione Excel (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Library Tesseract.js per OCR multi-foto -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
-        :root {
-            --bg-color: #f4f6f8;
-            --card-bg: #ffffff;
-            --primary: #0056b3;
-            --primary-hover: #004085;
-            --text: #212529;
-            --border: #dee2e6;
-            --accent: #28a745;
-            --accent-hover: #218838;
-            --warning: #ffc107;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text);
-            line-height: 1.4;
-            padding: 12px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--primary);
-        }
-
-        h1 {
-            font-size: 1.2rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .version-tag {
-            font-size: 0.75rem;
-            color: #6c757d;
-            margin-top: 2px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 14px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-
-        .card h2 {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: var(--primary);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 4px;
-        }
-
-        .form-group {
-            margin-bottom: 10px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.9rem;
-            background-color: #fff;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 90px;
-        }
-
-        .row {
-            display: flex;
-            gap: 8px;
-        }
-
-        .col {
-            flex: 1;
-        }
-
-        button, .btn-file {
-            display: inline-block;
-            text-align: center;
-            width: 100%;
-            background-color: var(--primary);
+        .day-checkbox:checked + label {
+            background-color: #2563eb;
             color: white;
-            border: none;
-            padding: 12px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-decoration: none;
-        }
-
-        button:active, .btn-file:active {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-ocr {
-            background-color: #6f42c1;
-            margin-bottom: 8px;
-        }
-
-        .btn-ocr:active {
-            background-color: #593196;
-        }
-
-        .btn-excel {
-            background-color: var(--accent);
-            margin-bottom: 12px;
-        }
-
-        .btn-excel:active {
-            background-color: var(--accent-hover);
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        #ocrStatus {
-            font-size: 0.8rem;
-            color: #495057;
-            background-color: #e9ecef;
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: none;
-            text-align: center;
-        }
-
-        .output-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.8rem;
-        }
-
-        .output-table th, .output-table td {
-            border: 1px solid var(--border);
-            padding: 6px 8px;
-            text-align: left;
-        }
-
-        .output-table th {
-            background-color: #e9ecef;
-            font-weight: bold;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            color: white;
-        }
-
-        .badge-spiegazione { background-color: #17a2b8; }
-        .badge-esercitazione { background-color: #6c757d; }
-        .badge-laboratorio { background-color: #ffc107; color: #000; }
-        .badge-ripasso { background-color: #fd7e14; }
-        .badge-verifica { background-color: #dc3545; }
-
-        @media (max-width: 380px) {
-            body { padding: 8px; }
-            .card { padding: 10px; }
-            .output-table { font-size: 0.75rem; }
+            border-color: #2563eb;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen p-4 md:p-8">
 
-    <header>
-        <h1>Pianificatore Didattico</h1>
-        <div class="version-tag">Versione Progetto: v0.2 | Export Excel | 0,00 € Free</div>
-    </header>
-
-    <div class="card">
-        <h2>1. Dati Scuola e Calendario</h2>
-        <div class="form-group">
-            <label for="istituto">Nome Istituto</label>
-            <input type="text" id="istituto" value="Liceo Scientifico 'A. Tassoni' - Modena">
-        </div>
-        <div class="row">
-            <div class="col form-group">
-                <label for="dataInizio">Inizio Lezioni</label>
-                <input type="date" id="dataInizio" value="2026-09-15">
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <!-- Header App -->
+        <header class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-3 rounded-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale</h1>
+                    <p class="text-sm text-slate-500">Generatore automatico con OCR multi-pagina ed export Excel • v0.3</p>
+                </div>
             </div>
-            <div class="col form-group">
-                <label for="dataFine">Fine Lezioni</label>
-                <input type="date" id="dataFine" value="2027-06-05">
+        </header>
+
+        <!-- Form Parametri -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <h2 class="text-lg font-semibold text-slate-900 border-b pb-3 border-slate-100">1. Dettagli Corso e Orari</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Materia</label>
+                    <input type="text" id="materia" value="Fisica" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Anno Scolastico</label>
+                    <input type="text" id="annoScolastico" value="2026/2027" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo</label>
+                    <input type="text" id="titoloLibro" placeholder="es. I problemi della Fisica - Amaldi (Vol. 1)" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label for="materia">Materia di Insegnamento</label>
-            <input type="text" id="materia" value="Fisica (1° Anno - 2 ore/sett)">
-        </div>
-    </div>
 
-    <div class="card">
-        <h2>2. Libro di Testo e Indice</h2>
-        <div class="form-group">
-            <label for="libro">Titolo Libro di Testo</label>
-            <input type="text" id="libro" value="L'Amaldi per i licei scientifici">
+            <!-- Ore settimanali e Selezione Giorni -->
+            <div class="space-y-3 pt-2">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase">Ore settimanali della materia</label>
+                    <input type="number" id="oreSettimanali" min="1" max="10" value="3" class="w-20 p-2 bg-slate-50 border border-slate-300 rounded-lg text-center text-sm font-bold text-blue-600">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Giorni di lezione della materia</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        <div>
+                            <input type="checkbox" id="giorno-1" value="1" class="hidden day-checkbox" checked>
+                            <label for="giorno-1" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Lun</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-2" value="2" class="hidden day-checkbox">
+                            <label for="giorno-2" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mar</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-3" value="3" class="hidden day-checkbox" checked>
+                            <label for="giorno-3" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mer</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-4" value="4" class="hidden day-checkbox">
+                            <label for="giorno-4" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Gio</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-5" value="5" class="hidden day-checkbox" checked>
+                            <label for="giorno-5" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Ven</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="giorno-6" value="6" class="hidden day-checkbox">
+                            <label for="giorno-6" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Sab</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modulo OCR Scansione Foto Indice (Multi-immagine) -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3 border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-900">2. Scansione Foto Indice Libro (Pagine Multiple)</h2>
+                <span id="fotoCount" class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">0 foto caricate</span>
+            </div>
+
+            <p class="text-sm text-slate-500">Scatta o carica le foto di tutte le pagine dell'indice del libro di testo. L'OCR le analizzerà in sequenza.</p>
+
+            <div class="flex flex-wrap gap-3">
+                <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-4 py-2.5 rounded-xl border border-blue-200 text-sm inline-flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Aggiungi Foto Indice</span>
+                    <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="gestisciCaricamentoFoto(event)">
+                </label>
+                <button onclick="avviaOCRMultiplo()" id="btnOCR" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50" disabled>
+                    Elabora OCR Foto
+                </button>
+            </div>
+
+            <!-- Anteprima Gallerie Foto -->
+            <div id="gallery" class="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2"></div>
+
+            <!-- Status OCR -->
+            <div id="ocrStatus" class="hidden text-sm p-3 bg-amber-50 text-amber-800 rounded-xl border border-amber-200">
+                In corso elaborazione OCR delle immagini...
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Argomenti rilevati dall'indice (Modificabili)</label>
+                <textarea id="argomentiInput" rows="5" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono" placeholder="I capitoli o gli argomenti appariranno qui dopo l'OCR, oppure puoi incollarli manualmente divisi da virgola o a capo..."></textarea>
+            </div>
+        </section>
+
+        <!-- Azioni e Tasto Genera -->
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="generaPiano()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all text-center">
+                Genera Piano Didattico Completo
+            </button>
+            <button onclick="esportaExcel()" id="btnExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all hidden flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Esporta in Excel (.xlsx)</span>
+            </button>
         </div>
 
-        <div class="form-group">
-            <label>Scansione Indice da Foto (Fotocamera / Galleria)</label>
-            <label for="fileOcr" class="btn-file btn-ocr">📸 Scansiona Foto Indice (OCR)</label>
-            <input type="file" id="fileOcr" accept="image/*" onchange="eseguiOcrFoto(this)">
-            <div id="ocrStatus">In attesa di immagine...</div>
-        </div>
+        <!-- Tabella Risultati -->
+        <section id="risultatiSection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hidden space-y-4">
+            <h2 class="text-lg font-semibold text-slate-900">Anteprima Calendario Lezioni</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700">
+                            <th class="p-3 border-b">N°</th>
+                            <th class="p-3 border-b">Data</th>
+                            <th class="p-3 border-b">Giorno</th>
+                            <th class="p-3 border-b">Argomento / Unità Didattica</th>
+                            <th class="p-3 border-b">Tipologia</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabellaCorpo" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
 
-        <div class="form-group">
-            <label for="indice">Indice Capitoli Estratto o Inserito (un capitolo per riga)</label>
-            <textarea id="indice">Cap 1. Le grandezze fisiche e la misura
-Cap 2. La rappresentazione dei dati e gli errori
-Cap 3. I vettori e le forze
-Cap 4. L'equilibrio dei solidi e la statica
-Cap 5. La statica dei fluidi</textarea>
-        </div>
-    </div>
-
-    <button onclick="generaPianoDidattico()">Genera Piano Didattico Completo</button>
-
-    <div class="card" id="risultatoCard" style="display:none; margin-top:14px;">
-        <h2>3. Piano Lezioni Generato</h2>
-        <div id="statistiche"></div>
-        <button class="btn-excel" onclick="esportaExcel()">📊 Esporta in Excel (.xlsx)</button>
-        <div style="overflow-x:auto;">
-            <table class="output-table" id="tabellaPiano">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Ora</th>
-                        <th>Attività</th>
-                        <th>Argomento</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
     </div>
 
     <script>
-        // Festività ufficiali Emilia-Romagna / Modena (A.S. 2026/2027)
-        const festivitaER = [
-            '2026-11-02', '2026-12-08',
-            '2026-12-24', '2026-12-25', '2026-12-26', '2026-12-27', '2026-12-28', '2026-12-29', '2026-12-30', '2026-12-31',
-            '2027-01-01', '2027-01-02', '2027-01-03', '2027-01-04', '2027-01-05', '2027-01-06',
-            '2027-01-31',
-            '2027-03-25', '2027-03-26', '2027-03-27', '2027-03-28', '2027-03-29', '2027-03-30',
-            '2027-04-25', '2027-05-01', '2027-06-02'
-        ];
+        let immaginiCaricate = [];
+        let pianoGenerato = [];
 
-        // Struttura globale per contenere i dati da esportare
-        let datiPianoGenerato = [];
-
-        // Funzione OCR con Tesseract.js in locale
-        async function eseguiOcrFoto(inputElement) {
-            const file = inputElement.files[0];
-            if (!file) return;
-
-            const statusDiv = document.getElementById('ocrStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.innerHTML = '⏳ Caricamento motore OCR...';
-
-            try {
-                const worker = await Tesseract.createWorker('ita');
-                statusDiv.innerHTML = '🔍 Analisi visiva della foto in corso...';
-
-                const ret = await worker.recognize(file);
-                await worker.terminate();
-
-                // Pulizia testo riconosciuto
-                const testoPulito = ret.data.text
-                    .split('\n')
-                    .map(linea => linea.trim())
-                    .filter(linea => linea.length > 3)
-                    .join('\n');
-
-                if (testoPulito) {
-                    document.getElementById('indice').value = testoPulito;
-                    statusDiv.innerHTML = '✅ Indice estratto con successo!';
-                } else {
-                    statusDiv.innerHTML = '⚠️ Nessun testo rilevato chiaramente. Riprova con una foto più nitida.';
-                }
-            } catch (err) {
-                console.error(err);
-                statusDiv.innerHTML = '❌ Errore durante la scansione OCR.';
-            }
+        function gestisciCaricamentoFoto(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    immaginiCaricate.push(e.target.result);
+                    aggiornaGalleria();
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
-        function generaPianoDidattico() {
-            const dataInizio = new Date(document.getElementById('dataInizio').value);
-            const dataFine = new Date(document.getElementById('dataFine').value);
-            const righeIndice = document.getElementById('indice').value.split('\n').filter(r => r.trim() !== '');
-
-            if (righeIndice.length === 0) {
-                alert('Inserisci o scansiona almeno un capitolo nell\'indice!');
-                return;
-            }
-
-            // Calcolo giorni utili (Martedì e Giovedì)
-            const dateLezione = [];
-            let corrente = new Date(dataInizio);
-
-            while (corrente <= dataFine) {
-                const isoStr = corrente.toISOString().split('T')[0];
-                const giorno = corrente.getDay(); // 2 = Martedì, 4 = Giovedì
-
-                if ((giorno === 2 || giorno === 4) && !festivitaER.includes(isoStr)) {
-                    dateLezione.push({
-                        dataStr: corrente.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-                        ora: giorno === 2 ? '1ª ora' : '2ª ora'
-                    });
-                }
-                corrente.setDate(corrente.getDate() + 1);
-            }
-
-            const sequenzaTipi = [
-                { nome: 'Spiegazione', classe: 'badge-spiegazione' },
-                { nome: 'Esercitazione', classe: 'badge-esercitazione' },
-                { nome: 'Laboratorio', classe: 'badge-laboratorio' },
-                { nome: 'Ripasso', classe: 'badge-ripasso' },
-                { nome: 'VERIFICA', classe: 'badge-verifica' }
-            ];
-
-            const tbody = document.querySelector('#tabellaPiano tbody');
-            tbody.innerHTML = '';
-            datiPianoGenerato = [];
-
-            let capIndex = 0;
-            let cicloStep = 0;
-
-            dateLezione.forEach((slot, idx) => {
-                const capAttuale = righeIndice[capIndex] || righeIndice[righeIndice.length - 1];
-                const tipoObj = sequenzaTipi[cicloStep % sequenzaTipi.length];
-
-                // Salva i dati per la tabella HTML
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${slot.dataStr}</td>
-                    <td>${slot.ora}</td>
-                    <td><span class="badge ${tipoObj.classe}">${tipoObj.nome}</span></td>
-                    <td>${capAttuale}</td>
+        function aggiornaGalleria() {
+            const gallery = document.getElementById('gallery');
+            const count = document.getElementById('fotoCount');
+            const btnOCR = document.getElementById('btnOCR');
+            
+            gallery.innerHTML = '';
+            count.innerText = `${immaginiCaricate.length} foto caricate`;
+            
+            immaginiCaricate.forEach((src, index) => {
+                const div = document.createElement('div');
+                div.className = 'relative group border rounded-lg overflow-hidden h-24 bg-slate-100';
+                div.innerHTML = `
+                    <img src="${src}" class="w-full h-full object-cover">
+                    <button onclick="rimuoviFoto(${index})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs shadow-md">✕</button>
                 `;
-                tbody.appendChild(tr);
-
-                // Salva i dati strutturati per l'esportazione Excel
-                datiPianoGenerato.push({
-                    "Data": slot.dataStr,
-                    "Ora": slot.ora,
-                    "Attività Didattica": tipoObj.nome,
-                    "Argomento / Capitolo": capAttuale
-                });
-
-                cicloStep++;
-                if (cicloStep % 5 === 0 && capIndex < righeIndice.length - 1) {
-                    capIndex++;
-                }
+                gallery.appendChild(div);
             });
 
-            document.getElementById('statistiche').innerHTML = `<p style="font-size:0.85rem; margin-bottom:8px;"><strong>Ore totali calcolate:</strong> ${dateLezione.length} lezioni effettive.</p>`;
-            document.getElementById('risultatoCard').style.display = 'block';
+            btnOCR.disabled = immaginiCaricate.length === 0;
         }
 
-        // Funzione di esportazione in formato Excel (.xlsx)
-        function esportaExcel() {
-            if (datiPianoGenerato.length === 0) {
-                alert("Genera prima il piano didattico!");
+        function rimuoviFoto(index) {
+            immaginiCaricate.splice(index, 1);
+            aggiornaGalleria();
+        }
+
+        async function avviaOCRMultiplo() {
+            if (immaginiCaricate.length === 0) return;
+            
+            const status = document.getElementById('ocrStatus');
+            const argomentiInput = document.getElementById('argomentiInput');
+            status.classList.remove('hidden');
+            
+            let testoComplessivo = '';
+
+            for (let i = 0; i < immaginiCaricate.length; i++) {
+                status.innerText = `Analisi OCR pagina ${i + 1} di ${immaginiCaricate.length} in corso...`;
+                const worker = await Tesseract.createWorker('ita');
+                const ret = await worker.recognize(immaginiCaricate[i]);
+                testoComplessivo += ret.data.text + '\n';
+                await worker.terminate();
+            }
+
+            status.classList.add('hidden');
+            argomentiInput.value = testoComplessivo.trim();
+        }
+
+        function generaPiano() {
+            const materia = document.getElementById('materia').value;
+            const libro = document.getElementById('titoloLibro').value;
+            const argomentiRaw = document.getElementById('argomentiInput').value;
+            
+            // Lettura giorni selezionati
+            const giorniSelezionati = [];
+            for (let i = 1; i <= 6; i++) {
+                if (document.getElementById(`giorno-${i}`).checked) {
+                    giorniSelezionati.push(i);
+                }
+            }
+
+            if (giorniSelezionati.length === 0) {
+                alert("Seleziona almeno un giorno della settimana per le lezioni.");
                 return;
             }
 
-            const istituto = document.getElementById('istituto').value;
-            const materia = document.getElementById('materia').value;
+            // Parsing argomenti
+            let listaArgomenti = argomentiRaw.split(/[\n,]+/).map(a => a.trim()).filter(a => a.length > 0);
+            if (listaArgomenti.length === 0) {
+                listaArgomenti = [
+                    "Introduzione alla materia e ripasso",
+                    "Unità 1: Misura e grandezze fisiche",
+                    "Unità 2: Il movimento e la cinematica",
+                    "Unità 3: Le forze e la dinamica",
+                    "Unità 4: Energia e lavoro",
+                    "Verifica di recupero e consolidamento"
+                ];
+            }
 
-            // Creazione foglio Excel con SheetJS
+            // Date A.S. 2026/2027
+            let dataCorrente = new Date(2026, 8, 15); // 15 Settembre 2026
+            const dataFine = new Date(2027, 5, 8);     // 8 Giugno 2027
+
+            pianoGenerato = [];
+            let numLezione = 1;
+            let argIndex = 0;
+
+            const giorniNomi = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+
+            while (dataCorrente <= dataFine) {
+                const dayOfWeek = dataCorrente.getDay();
+                
+                // Se il giorno rientra tra quelli scelti dall'utente
+                if (giorniSelezionati.includes(dayOfWeek)) {
+                    const dataFormattata = dataCorrente.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const nomeGiorno = giorniNomi[dayOfWeek];
+                    
+                    let argomento = listaArgomenti[argIndex % listaArgomenti.length];
+                    let tipologia = (numLezione % 8 === 0) ? "Verifica Scritta" : ((numLezione % 4 === 0) ? "Esercitazione / Lab" : "Spiegazione");
+
+                    pianoGenerato.push({
+                        numero: numLezione,
+                        data: dataFormattata,
+                        giorno: nomeGiorno,
+                        materia: materia,
+                        libro: libro,
+                        argomento: argomento,
+                        tipologia: tipologia
+                    });
+
+                    numLezione++;
+                    if (numLezione % 2 === 0) argIndex++;
+                }
+                
+                // Incrementa di un giorno
+                dataCorrente.setDate(dataCorrente.getDate() + 1);
+            }
+
+            // Render Tabella
+            const corpo = document.getElementById('tabellaCorpo');
+            corpo.innerHTML = '';
+            pianoGenerato.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-3 font-medium text-slate-500">${row.numero}</td>
+                    <td class="p-3 font-semibold text-slate-800">${row.data}</td>
+                    <td class="p-3 text-slate-600">${row.giorno}</td>
+                    <td class="p-3 text-slate-800">${row.argomento}</td>
+                    <td class="p-3"><span class="px-2 py-1 text-xs rounded-full ${row.tipologia.includes('Verifica') ? 'bg-red-100 text-red-700 font-semibold' : 'bg-blue-100 text-blue-700'}">${row.tipologia}</span></td>
+                `;
+                corpo.appendChild(tr);
+            });
+
+            document.getElementById('risultatiSection').classList.remove('hidden');
+            document.getElementById('btnExcel').classList.remove('hidden');
+        }
+
+        function esportaExcel() {
+            if (pianoGenerato.length === 0) return;
+
+            const datiExcel = pianoGenerato.map(item => ({
+                "N° Lezione": item.numero,
+                "Data": item.data,
+                "Giorno": item.giorno,
+                "Materia": item.materia,
+                "Libro di Testo": item.libro,
+                "Argomento / Unità Didattica": item.argomento,
+                "Tipologia Lezione": item.tipologia
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(datiExcel);
             const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Piano Didattico");
 
-            // Trasforma il JSON in foglio di lavoro
-            const ws = XLSX.utils.json_to_sheet(datiPianoGenerato);
-
-            // Aggiunge il foglio al libro Excel
-            XLSX.utils.book_append_sheet(wb, ws, "Piano Lezioni");
-
-            // Genera e scarica il file .xlsx
-            XLSX.writeFile(wb, "Piano_Lezioni_Fisica_2026_2027.xlsx");
+            XLSX.writeFile(wb, `Piano_Didattico_${document.getElementById('materia').value}_2026_2027.xlsx`);
         }
     </script>
 </body>
