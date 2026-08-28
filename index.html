@@ -28,7 +28,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale</h1>
-                    <p class="text-sm text-slate-500">Calcolo Ore Effettive • Festività Nazionali • Indice Obbligatorio • v0.6</p>
+                    <p class="text-sm text-slate-500">Spiegazioni, Interrogazioni Orali e Verifiche Scritte • v0.7</p>
                 </div>
             </div>
         </header>
@@ -168,7 +168,7 @@
                             <th class="p-3 border-b">Data</th>
                             <th class="p-3 border-b">Giorno</th>
                             <th class="p-3 border-b">Argomento dal Libro</th>
-                            <th class="p-3 border-b">Tipologia</th>
+                            <th class="p-3 border-b">Tipologia Attività</th>
                         </tr>
                     </thead>
                     <tbody id="tabellaCorpo" class="divide-y divide-slate-100"></tbody>
@@ -183,23 +183,12 @@
         let pianoGenerato = [];
         const nomiGiorni = ["", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
 
-        // Elenco Festività Nazionali Italiane Standard (Mese-Giorno)
         const festivitaFisse = [
-            "11-01", // Tutti i Santi
-            "12-08", // Immacolata Concezione
-            "12-25", // Natale
-            "12-26", // Santo Stefano
-            "01-01", // Capodanno
-            "01-06", // Epifania
-            "04-25", // Festa della Liberazione
-            "05-01", // Festa del Lavoro
-            "06-02"  // Festa della Repubblica
+            "11-01", "12-08", "12-25", "12-26", "01-01", "01-06", "04-25", "05-01", "06-02"
         ];
 
-        // Festività mobili (es. Pasqua e Pasquetta 2027: 28 e 29 Marzo 2027)
         const festivitaMobili = [
-            "2027-03-28", // Pasqua 2027
-            "2027-03-29"  // Pasquetta 2027
+            "2027-03-28", "2027-03-29"
         ];
 
         window.onload = function() {
@@ -325,7 +314,6 @@
             const mmdd = `${mm}-${dd}`;
             const yyyymmdd = `${data.getFullYear()}-${mm}-${dd}`;
 
-            // Controllo festività fisse o mobili
             return festivitaFisse.includes(mmdd) || festivitaMobili.includes(yyyymmdd);
         }
 
@@ -337,7 +325,6 @@
             const valInizio = document.getElementById('dataInizio').value;
             const valFine = document.getElementById('dataFine').value;
 
-            // VALIDAZIONI RIGIDE
             if (!materia) {
                 alert("Inserisci il nome della materia.");
                 return;
@@ -347,7 +334,7 @@
                 return;
             }
             if (!argomentiRaw) {
-                alert("ATTENZIONE: Inserisci gli argomenti presi dall'indice del libro (incolla il testo o usa la scansione delle foto). L'app genera il piano basandosi ESCLUSIVAMENTE sul tuo libro.");
+                alert("Inserisci gli argomenti presi dall'indice del libro.");
                 return;
             }
             if (!valInizio || !valFine) {
@@ -358,7 +345,6 @@
             let dataCorrente = new Date(valInizio);
             const dataFine = new Date(valFine);
 
-            // Mappatura Giorni e Ore per Giorno
             const mappaOreGiorni = {};
             for (let i = 1; i <= 6; i++) {
                 const chk = document.getElementById(`giorno-${i}`);
@@ -373,7 +359,6 @@
                 return;
             }
 
-            // Parsing argomenti forniti DALL'UTENTE
             let listaArgomenti = argomentiRaw.split('\n').map(a => a.trim()).filter(a => a.length > 0);
 
             pianoGenerato = [];
@@ -383,7 +368,6 @@
             while (dataCorrente <= dataFine) {
                 const dayOfWeek = dataCorrente.getDay();
                 
-                // Se è un giorno di lezione e NON è festivo
                 if (mappaOreGiorni[dayOfWeek] && !isFesta(dataCorrente)) {
                     const oreInQuestoGiorno = mappaOreGiorni[dayOfWeek];
                     const dataFormattata = dataCorrente.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -391,7 +375,16 @@
 
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
                         let argomento = listaArgomenti[argIndex % listaArgomenti.length];
-                        let tipologia = (numOraTotale % 8 === 0) ? "Verifica Scritta" : ((numOraTotale % 4 === 0) ? "Esercitazione / Lab" : "Spiegazione");
+                        
+                        // LOGICA DI ALTERNANZA: Spiegazioni, Interrogazioni Orali e Verifiche Scritte
+                        let tipologia = "Spiegazione";
+                        if (numOraTotale % 12 === 0) {
+                            tipologia = "Verifica Scritta";
+                        } else if (numOraTotale % 6 === 0) {
+                            tipologia = "Interrogazione Orale";
+                        } else if (numOraTotale % 11 === 0) {
+                            tipologia = "Ripasso / Esercitazione";
+                        }
                         
                         let etichettaGiorno = nomeGiorno;
                         if (oreInQuestoGiorno > 1) {
@@ -404,19 +397,21 @@
                             giorno: etichettaGiorno,
                             materia: materia,
                             libro: libro,
-                            argomento: argomento,
+                            argomento: (tipologia === "Interrogazione Orale" || tipologia === "Verifica Scritta") ? `Verifica/Valutazione su: ${argomento}` : argomento,
                             tipologia: tipologia
                         });
 
                         numOraTotale++;
-                        if (numOraTotale % 2 === 0) argIndex++;
+                        // Avanza l'argomento principalmente durante le spiegazioni
+                        if (tipologia === "Spiegazione" && numOraTotale % 2 === 0) {
+                            argIndex++;
+                        }
                     }
                 }
                 
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
             }
 
-            // Aggiorna Interfaccia e Conteggio Ore Totali
             document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
             document.getElementById('subtitolioRisultato').innerText = `Materia: ${materia} • Libro: ${libro}`;
 
@@ -425,12 +420,18 @@
             corpo.innerHTML = '';
             pianoGenerato.forEach(row => {
                 const tr = document.createElement('tr');
+                
+                let badgeClass = "bg-blue-100 text-blue-700";
+                if (row.tipologia === "Verifica Scritta") badgeClass = "bg-red-100 text-red-700 font-semibold";
+                if (row.tipologia === "Interrogazione Orale") badgeClass = "bg-amber-100 text-amber-800 font-semibold";
+                if (row.tipologia.includes("Ripasso")) badgeClass = "bg-emerald-100 text-emerald-800";
+
                 tr.innerHTML = `
                     <td class="p-3 font-medium text-slate-500">${row.numero}</td>
                     <td class="p-3 font-semibold text-slate-800">${row.data}</td>
                     <td class="p-3 text-slate-600">${row.giorno}</td>
                     <td class="p-3 text-slate-800 font-medium">${row.argomento}</td>
-                    <td class="p-3"><span class="px-2 py-1 text-xs rounded-full ${row.tipologia.includes('Verifica') ? 'bg-red-100 text-red-700 font-semibold' : 'bg-blue-100 text-blue-700'}">${row.tipologia}</span></td>
+                    <td class="p-3"><span class="px-2.5 py-1 text-xs rounded-full ${badgeClass}">${row.tipologia}</span></td>
                 `;
                 corpo.appendChild(tr);
             });
@@ -449,7 +450,7 @@
                 "Materia": item.materia,
                 "Libro di Testo": item.libro,
                 "Argomento / Unità Didattica": item.argomento,
-                "Tipologia Lezione": item.tipologia
+                "Tipologia Attività": item.tipologia
             }));
 
             const ws = XLSX.utils.json_to_sheet(datiExcel);
