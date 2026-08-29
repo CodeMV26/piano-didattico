@@ -1,84 +1,108 @@
-/**
- * Funzione per generare il piano delle interrogazioni
- * @param {Array<string>} studenti - Lista dei nomi degli studenti
- * @param {string} tipoAnno - "T" per Trimestri, "Q" per Quadrimestri
- * @param {Array<number>} minInterrogazioniPerPeriodo - Numero minimo di interrogazioni per ciascun periodo (es. [2, 3] per quadrimestri o [2, 2, 2] per trimestri)
- * @param {number} studentiPerLezione - Quanti studenti interrogare per ciascuna lezione
- */
-function generaPianoInterrogazioni(studenti, tipoAnno, minInterrogazioniPerPeriodo, studentiPerLezione = 2) {
-    const periodi = [];
+const readline = require('readline');
 
-    // 1. Definizione della struttura in base a Trimestri (T) o Quadrimestri (Q)
-    if (tipoAnno.toUpperCase() === 'T') {
-        periodi.push(
-            { nome: "1° Trimestre", min: minInterrogazioniPerPeriodo[0] || 2 },
-            { nome: "2° Trimestre", min: minInterrogazioniPerPeriodo[1] || 2 },
-            { nome: "3° Trimestre", min: minInterrogazioniPerPeriodo[2] || 2 }
-        );
-    } else if (tipoAnno.toUpperCase() === 'Q') {
-        periodi.push(
-            { nome: "1° Quadrimestre", min: minInterrogazioniPerPeriodo[0] || 2 },
-            { nome: "2° Quadrimestre", min: minInterrogazioniPerPeriodo[1] || 2 }
-        );
-    } else {
-        throw new Error("Tipo anno non valido. Usare 'T' per Trimestri o 'Q' per Quadrimestri.");
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+const askQuestion = (query) => new Promise((resolve) => rl.question(query, resolve));
+
+async function acquisisciImpostazioni() {
+    console.log("=== CONFIGURAZIONE PIANO DIDATTICO ===");
+    
+    // 1. Scelta della suddivisione dell'anno
+    let scelta = "";
+    while (scelta !== 'T' && scelta !== 'Q') {
+        scelta = (await askQuestion("La tua scuola adotta Trimestri (T) o Quadrimestri (Q)? ")).trim().toUpperCase();
+        if (scelta !== 'T' && scelta !== 'Q') {
+            console.log("Scelta non valida. Inserisci 'T' per trimestri o 'Q' per quadrimestri.");
+        }
     }
 
+    let periodi = [];
+    if (scelta === 'T') {
+        periodi = [
+            { nome: "1° Trimestre", minInterrogazioni: 0 },
+            { nome: "2° Trimestre", minInterrogazioni: 0 },
+            { nome: "3° Trimestre", minInterrogazioni: 0 }
+        ];
+    } else {
+        periodi = [
+            { nome: "1° Quadrimestre", minInterrogazioni: 0 },
+            { nome: "2° Quadrimestre", minInterrogazioni: 0 }
+        ];
+    }
+
+    // Input del numero minimo di interrogazioni per periodo
+    for (let p of periodi) {
+        while (true) {
+            const inputVal = await askQuestion(`Numero minimo di interrogazioni per studente nel ${p.nome}: `);
+            const minInt = parseInt(inputVal, 10);
+            if (!isNaN(minInt) && minInt > 0) {
+                p.minInterrogazioni = minInt;
+                break;
+            }
+            console.log("Inserisci un numero valido maggiore di 0.");
+        }
+    }
+
+    return periodi;
+}
+
+function programmoInterrogazioni(studenti, periodi, interrogazioniPerLezione) {
     const pianoDidattico = {};
 
-    // 2. Programmazione delle interrogazioni per ogni periodo
-    periodi.forEach(periodo => {
-        // Creiamo la lista con tutti gli studenti da interrogare in base al numero minimo del periodo
+    console.log("\n========================================");
+    console.log("   PROGRAMMAZIONE DELLE INTERROGAZIONI");
+    console.log("========================================");
+
+    for (let p of periodi) {
+        // Generiamo la lista di tutte le interrogazioni necessarie per il periodo
         let interrogazioniDaFare = [];
-        studenti.forEach(studente => {
-            for (let i = 0; i < periodo.min; i++) {
+        for (let studente of studenti) {
+            for (let i = 0; i < p.minInterrogazioni; i++) {
                 interrogazioniDaFare.push(studente);
             }
-        });
+        }
 
-        // Mescolamento casuale dell'ordine delle interrogazioni (Algoritmo Fisher-Yates)
+        // Mescoliamo casualmente la lista (Algoritmo Fisher-Yates)
         for (let i = interrogazioniDaFare.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [interrogazioniDaFare[i], interrogazioniDaFare[j]] = [interrogazioniDaFare[j], interrogazioniDaFare[i]];
         }
 
-        // Raggruppamento delle interrogazioni nelle singole lezioni
-        const lezioni = [];
-        for (let i = 0; i < interrogazioniDaFare.length; i += studentiPerLezione) {
-            lezioni.push(interrogazioniDaFare.slice(i, i + studentiPerLezione));
+        // Raggruppiamo le interrogazioni per lezione
+        const calendarioPeriodo = [];
+        for (let i = 0; i < interrogazioniDaFare.length; i += interrogazioniPerLezione) {
+            calendarioPeriodo.push(interrogazioniDaFare.slice(i, i + interrogazioniPerLezione));
         }
 
-        pianoDidattico[periodo.nome] = lezioni;
-    });
+        pianoDidattico[p.nome] = calendarioPeriodo;
+    }
 
     return pianoDidattico;
 }
 
-// ==========================================
-// ESEMPIO DI UTILIZZO (Modifica con i tuoi dati)
-// ==========================================
+function stampaProgrammazione(pianoDidattico) {
+    for (let [periodo, lezioni] of Object.entries(pianoDidattico)) {
+        console.log(`\n--- ${periodo.toUpperCase()} ---`);
+        lezioni.forEach((studenti, index) => {
+            console.log(`  Lezione ${index + 1}: ${studenti.join(", ")}`);
+        });
+    }
+}
 
-const elencoClasse = [
-    "Marco Rossi", 
-    "Giulia Bianchi", 
-    "Luca Verdi", 
-    "Sofia Russo", 
-    "Alessandro Esposito", 
-    "Emma Romano"
-];
+// ESECUZIONE
+async function main() {
+    const classe = ["Marco Rossi", "Giulia Bianchi", "Luca Verdi", "Sofia Russo", "Alessandro Esposito", "Emma Romano"];
+    
+    const periodiScolastici = await acquisisciImpostazioni();
+    rl.close();
 
-// Parametri di input:
-const tipoDivisione = "Q"; // "Q" per Quadrimestri, "T" per Trimestri
-const interrogazioniMinime = [2, 3]; // Es. 2 nel 1° quadrimestre, 3 nel 2° quadrimestre
-const interrogatiPerLezione = 2;
+    const numInterrogatiPerOra = 2;
+    const piano = programmoInterrogazioni(classe, periodiScolastici, numInterrogatiPerOra);
+    
+    stampaProgrammazione(piano);
+}
 
-// Generazione del piano
-const pianoGenerato = generaPianoInterrogazioni(
-    elencoClasse, 
-    tipoDivisione, 
-    interrogazioniMinime, 
-    interrogatiPerLezione
-);
-
-// Stampa del risultato
-console.log(JSON.stringify(pianoGenerato, null, 2));
+main();
