@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generatore Piano Didattico Pro v1.0</title>
+    <title>Generatore Piano Didattico Pro v1.1</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS per export Excel -->
@@ -28,7 +28,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale Professional</h1>
-                    <p class="text-sm text-slate-500">ID Progressivo • Codifica Lezioni • Archivio Storico • v1.0</p>
+                    <p class="text-sm text-slate-500">Gestione Metà Spiegazione/Interrogazione • Codifica Lezioni • v1.1</p>
                 </div>
             </div>
             <button onclick="toggleArchivio()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2">
@@ -73,7 +73,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">N° Studenti della Classe *</label>
                     <input type="number" id="numStudenti" value="24" min="1" max="40" oninput="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
@@ -81,6 +81,13 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo *</label>
                     <input type="text" id="titoloLibro" placeholder="es. Matematica.blu 2.0" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modalità Ora Ordinaria *</label>
+                    <select id="modalitaOraSelect" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-indigo-700">
+                        <option value="INTERA">1 Ora Sola Spiegazione</option>
+                        <option value="DIVISA">½ Ora Spiegazione + ½ Ora Interrogazione</option>
+                    </select>
                 </div>
             </div>
 
@@ -251,7 +258,6 @@
             aggiornaContatoreArchivio();
         };
 
-        // Genera Sigla Iniziali Scuola (es. Liceo Fermi -> LF)
         function generaSiglaScuola(nome) {
             if (!nome) return "SCUOLA";
             const paroleIgnorate = ["DI", "DEL", "DELLA", "DEGLI", "E", "STATALE", "ISTITUTO", "COMPRENSIVO"];
@@ -260,7 +266,6 @@
             return parole.map(p => p[0]).join('');
         }
 
-        // Genera ID Univoco del Piano: [SIGLA_SCUOLA]-[CLASSE]-[PROGRESSIVO]
         function generaIDUnivocoProgressivo(siglaScuola, classe) {
             const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
             const numProgressivo = (archivio.length + 1).toString().padStart(3, '0');
@@ -507,6 +512,7 @@
             const classe = document.getElementById('nomeClasse').value.trim();
             const selMat = document.getElementById('materiaSelect').value;
             const nomeMateria = document.getElementById('materiaSelect').options[document.getElementById('materiaSelect').selectedIndex].text;
+            const modalitaOra = document.getElementById('modalitaOraSelect').value;
             const libro = document.getElementById('titoloLibro').value.trim();
             const argomentiRaw = document.getElementById('argomentiInput').value.trim();
             const valInizio = document.getElementById('dataInizio').value;
@@ -519,7 +525,7 @@
             }
 
             const siglaScuola = generaSiglaScuola(scuola);
-            const inizialeMateria = nomeMateria.charAt(0).toUpperCase(); // 'M' per Matematica, 'F' per Fisica
+            const inizialeMateria = nomeMateria.charAt(0).toUpperCase();
 
             const argomentiPonderati = estraiArgomentiConPesi(argomentiRaw);
             const totalePagineLavoro = argomentiPonderati.reduce((acc, curr) => acc + curr.pagineTotali, 0);
@@ -565,17 +571,16 @@
                     const dd = String(dataCorrente.getDate()).padStart(2, '0');
                     const dataFormattata = `${dd}/${mm}/${aaaa}`;
                     
-                    // Codice univoco lezione: [INIZIALE_MATERIA][ANNO][MESE][GIORNO] -> es. M20260915
                     const codiceLezione = `${inizialeMateria}${aaaa}${mm}${dd}`;
-
                     const meseAnno = dataCorrente.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
                     const nomeGiorno = nomiGiorni[dayOfWeek];
 
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
                         let argObj = argomentiPonderati[argIndex % argomentiPonderati.length];
                         let tipologia = "Spiegazione";
-                        let dettaglioArgomento = argObj.titolo;
+                        let dettaglioArgomento = "";
 
+                        // Controllo Verifiche e Interrogazioni dedicate
                         if (numOraTotale > 1 && numOraTotale % passoVerificaScritta === 0 && argomentiSpiegatiSet.size > 0 && selMat !== 'Fisica_O') {
                             tipologia = "Verifica Scritta";
                             const argomentiGiaFatti = Array.from(argomentiSpiegatiSet).slice(-3).join(" • ");
@@ -586,13 +591,23 @@
                                 const argomentiGiaFatti = Array.from(argomentiSpiegatiSet).slice(-2).join(" • ");
                                 dettaglioArgomento = `TEST SCRITTO CON VALORE ORALE (Valutazione rapida intera classe ${numStudenti} studenti) su: [ ${argomentiGiaFatti} ]`;
                             } else {
-                                tipologia = "Interrogazione / Lavagna";
+                                tipologia = "Interrogazione Programmata";
                                 const argomentiGiaFatti = Array.from(argomentiSpiegatiSet).slice(-2).join(" • ");
                                 dettaglioArgomento = `INTERROGAZIONE A GRUPPI / Lavagna su: [ ${argomentiGiaFatti} ]`;
                             }
                         } else {
+                            // Lezione Ordinaria: verifica della modalità (Intera o Divisa a metà)
                             argomentiSpiegatiSet.add(argObj.titolo);
                             oreSpiegatePerArgomentoCorrente++;
+
+                            if (modalitaOra === "DIVISA") {
+                                tipologia = "½ Spiegazione + ½ Interrogazione";
+                                const ultimoArg = Array.from(argomentiSpiegatiSet).slice(-2, -1)[0] || "Argomenti precedenti";
+                                dettaglioArgomento = `(30 min) SPIEGAGIONE: ${argObj.titolo} | (30 min) INTERROGAZIONE / RIPASSO su: ${ultimoArg}`;
+                            } else {
+                                tipologia = "Spiegazione Ordinaria";
+                                dettaglioArgomento = argObj.titolo;
+                            }
                         }
 
                         let etichettaGiorno = nomeGiorno;
@@ -695,7 +710,8 @@
                     righeSettimana.forEach(row => {
                         let badgeColor = 'bg-blue-100 text-blue-700';
                         if (row.tipologia.includes('Verifica')) badgeColor = 'bg-red-100 text-red-700 font-bold';
-                        if (row.tipologia.includes('Interrogazione') || row.tipologia.includes('Test Breve')) badgeColor = 'bg-amber-100 text-amber-800 font-bold';
+                        if (row.tipologia.includes('Interrogazione Programmata') || row.tipologia.includes('Test Breve')) badgeColor = 'bg-amber-100 text-amber-800 font-bold';
+                        if (row.tipologia.includes('½')) badgeColor = 'bg-indigo-100 text-indigo-800 font-semibold';
 
                         htmlTabella += `
                             <tr>
