@@ -3,427 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generatore Piano Didattico Pro v1.1</title>
-    <!-- Tailwind CSS -->
+    <title>Generatore Piano Didattico con Valutazioni Programmate</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS per export Excel -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <style>
-        .day-checkbox:checked + label {
-            background-color: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
-    </style>
+    <!-- SheetJS (XLSX) per Esportazione Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen p-4 md:p-8">
 
-    <div class="max-w-4xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header App -->
-        <header class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="bg-blue-600 text-white p-3 rounded-xl">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale Professional</h1>
-                    <p class="text-sm text-slate-500">Gestione Metà Spiegazione/Interrogazione • Codifica Lezioni • v1.1</p>
-                </div>
+        <!-- HEADER -->
+        <header class="bg-gradient-to-r from-blue-900 via-indigo-800 to-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Piano Didattico Strategico</h1>
+                <p class="text-blue-200 text-xs md:text-sm mt-1">Generazione automatica lezioni, scansione OCR e garanzia voti orali per studente</p>
             </div>
-            <button onclick="toggleArchivio()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                <span>Archivio Piani (<span id="countArchivio">0</span>)</span>
-            </button>
+            <div id="archivioPannello" class="flex gap-2">
+                <button onclick="caricaArchivioInModal()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-semibold backdrop-blur-md transition-all border border-white/20">
+                    📂 Archivio Piani (<span id="archivioCount">0</span>)
+                </button>
+            </div>
         </header>
 
-        <!-- Sezione Archivio Piani (Nascosto di Default) -->
-        <section id="sezioneArchivio" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hidden space-y-4">
-            <div class="flex justify-between items-center border-b pb-3 border-slate-100">
-                <h2 class="text-md font-bold text-slate-900 flex items-center gap-2">
-                    <span>📁 Archivio Piani Salvati</span>
+        <!-- MAIN FORM CONTAINER -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- COLONNA SINISTRA: Parametri Scuola, Periodi e Valutazioni -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <span>⚙️</span> Parametri Corso & Periodi
                 </h2>
-                <button onclick="svuotaArchivio()" class="text-xs text-red-600 hover:underline">Svuota Archivio</button>
-            </div>
-            <div id="listaArchivio" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-                <!-- Lista dinamica dei piani salvati -->
-            </div>
-        </section>
 
-        <!-- Form Parametri -->
-        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-            <h2 class="text-lg font-semibold text-slate-900 border-b pb-3 border-slate-100">1. Dati Scuola, Classe e Materia</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Scuola / Istituto *</label>
-                    <input type="text" id="nomeScuola" value="Liceo Scientifico Fermi" placeholder="es. Liceo Fermi" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Classe e Sezione *</label>
-                    <input type="text" id="nomeClasse" value="1A" placeholder="es. 1A, 2B, 3C" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Materia *</label>
-                    <select id="materiaSelect" onchange="aggiornaMateriaEValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium">
-                        <option value="Matematica">Matematica (Scritto + Orale)</option>
-                        <option value="Fisica_SO">Fisica (Scritto + Orale - es. Scientifico)</option>
-                        <option value="Fisica_O">Fisica (Solo Orale - es. Umanistico)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">N° Studenti della Classe *</label>
-                    <input type="number" id="numStudenti" value="24" min="1" max="40" oninput="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo *</label>
-                    <input type="text" id="titoloLibro" placeholder="es. Matematica.blu 2.0" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modalità Ora Ordinaria *</label>
-                    <select id="modalitaOraSelect" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-indigo-700">
-                        <option value="INTERA">1 Ora Sola Spiegazione</option>
-                        <option value="DIVISA">½ Ora Spiegazione + ½ Ora Interrogazione</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Box di Calcolo Tattico Valutazioni -->
-            <div id="boxValutazioniInfo" class="p-4 bg-blue-50/70 rounded-xl border border-blue-200 space-y-2 text-xs">
-                <div class="flex justify-between items-center font-bold text-blue-900">
-                    <span id="titoloNormativaValutazioni">Target Voti da Statuto Studenti</span>
-                    <span id="badgeTargetVoti" class="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[11px]">Minimo 3 Voti / Quadrimestre</span>
-                </div>
-                <p id="descrizioneValutazioni" class="text-slate-700 leading-relaxed"></p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2 border-t border-blue-200/60 font-medium text-slate-600">
-                    <div id="tempoOraleSingolo" class="p-2 bg-white rounded-lg border border-blue-100"></div>
-                    <div id="tempoOraleOttimizzato" class="p-2 bg-white rounded-lg border border-blue-100 text-emerald-800"></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Inizio Lezioni</label>
-                    <input type="date" id="dataInizio" value="2026-09-15" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Fine Lezioni</label>
-                    <input type="date" id="dataFine" value="2027-06-05" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-            </div>
-
-            <!-- Calendario Vacanze Personalizzato -->
-            <div class="p-4 bg-amber-50/50 rounded-xl border border-amber-200 space-y-3">
-                <h3 class="text-xs font-bold text-amber-900 uppercase">Calendario Vacanze Scolastiche della Scuola</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="space-y-4">
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Vacanze di Natale (Inizio - Fine)</label>
-                        <div class="flex gap-2">
-                            <input type="date" id="vacNataleInizio" value="2026-12-23" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
-                            <input type="date" id="vacNataleFine" value="2027-01-06" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Istituto / Scuola *</label>
+                        <input type="text" id="nomeScuola" placeholder="Es. Liceo Scientifico Galilei" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Classe *</label>
+                            <input type="text" id="nomeClasse" placeholder="Es. 3A" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">N° Studenti *</label>
+                            <input type="number" id="numStudenti" value="24" min="1" oninput="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Materia *</label>
+                        <select id="materiaSelect" onchange="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Matematica">Matematica (Scritto + Orale)</option>
+                            <option value="Fisica_O">Fisica (Solo Orale - Test Rapidi)</option>
+                            <option value="Fisica_SO">Fisica (Scritto + Orale)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modalità D'Ora *</label>
+                        <select id="modalitaOraSelect" onchange="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="INTERA">Ora Intera (60 min Spiegazione / Interrogazione)</option>
+                            <option value="DIVISA">Ora Divisa (30 min Spiegazione + 30 min Interrogazione)</option>
+                        </select>
+                    </div>
+
+                    <!-- STRUTTURA DELL'ANNO SCOLASTICO E PERIODI -->
+                    <div class="pt-2 border-t space-y-3">
+                        <label class="block text-xs font-extrabold text-indigo-900 uppercase">Suddivisione Anno & Target Voti</label>
+                        
+                        <div>
+                            <label class="block text-xs text-slate-500 mb-1">Struttura Anno Scolastico</label>
+                            <select id="tipoSuddivisione" class="w-full p-2.5 bg-indigo-50/50 border border-indigo-200 rounded-lg text-sm font-bold text-indigo-900 outline-none">
+                                <option value="2_QUADRIMESTRI">2 Quadrimestri</option>
+                                <option value="TRIMESTRE_PENTAMESTRE">1° Trimestre + 2° Pentamestre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-500 mb-1">Data Termine 1° Periodo (Quad/Trim) *</label>
+                            <input type="date" id="dataFinePeriodo1" value="2027-01-31" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-500 mb-1">Minimo Voti Orali / Studente per Periodo *</label>
+                            <input type="number" id="votiOraliMinimi" value="2" min="1" max="5" oninput="calcolaTempoValutazioni()" class="w-full p-2 bg-emerald-50 border border-emerald-300 font-bold text-emerald-800 rounded-lg text-sm">
+                        </div>
+                    </div>
+
+                    <!-- BOX INFORMATIVO TARGET ORALI -->
+                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1 text-xs">
+                        <div id="badgeTargetVoti" class="font-bold text-amber-900">Target: 2 Voti Orali Minimi per Studente / Periodo</div>
+                        <div id="descrizioneValutazioni" class="text-amber-800"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLONNA CENTRALE E DESTRA: Calendario, OCR e Programma -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- CALENDARIO E ORARIO SETTIMANALE -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                        <span>📅</span> Calendario Lezioni & Orario
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Inizio Anno *</label>
+                            <input type="date" id="dataInizio" value="2026-09-15" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Fine Anno *</label>
+                            <input type="date" id="dataFine" value="2027-06-08" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Orario Settimanale Lezioni</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                            <!-- Lunedi - Sabato -->
+                            <script>
+                                const giorni = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+                                giorni.forEach((g, idx) => {
+                                    const id = idx + 1;
+                                    document.write(`
+                                        <div class="p-2 bg-slate-50 border rounded-lg text-center space-y-1">
+                                            <div class="text-xs font-bold text-slate-700">${g}</div>
+                                            <input type="checkbox" id="giorno-${id}" ${id <= 4 ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded">
+                                            <select id="ore-giorno-${id}" class="w-full text-xs p-1 border rounded bg-white">
+                                                <option value="1">1 Ora</option>
+                                                <option value="2">2 Ore</option>
+                                            </select>
+                                        </div>
+                                    `);
+                                });
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- VACANZE E FESTE -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 uppercase">Vacanze Natale (Inizio - Fine)</label>
+                            <div class="flex gap-1">
+                                <input type="date" id="vacNataleInizio" value="2026-12-23" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                                <input type="date" id="vacNataleFine" value="2027-01-06" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 uppercase">Vacanze Pasqua (Inizio - Fine)</label>
+                            <div class="flex gap-1">
+                                <input type="date" id="vacPasquaInizio" value="2027-03-25" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                                <input type="date" id="vacPasquaFine" value="2027-03-30" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                            </div>
                         </div>
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">Vacanze di Pasqua (Inizio - Fine)</label>
-                        <div class="flex gap-2">
-                            <input type="date" id="vacPasquaInizio" value="2027-03-25" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
-                            <input type="date" id="vacPasquaFine" value="2027-03-30" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
-                        </div>
+                        <label class="block text-[11px] font-semibold text-slate-500 uppercase">Giorni Extra Festivi (Separati da virgola: YYYY-MM-DD)</label>
+                        <input type="text" id="giorniExtraFesta" value="2026-11-02, 2027-04-26, 2027-05-02" class="w-full p-2 bg-slate-50 border rounded text-xs">
                     </div>
                 </div>
+
+                <!-- CARICAMENTO INDICE E OCR -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center justify-between">
+                        <span class="flex items-center gap-2">📖 Libro & Indice Digitale</span>
+                        <span id="fotoCount" class="text-xs font-normal text-slate-500">0 foto caricate</span>
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo *</label>
+                            <input type="text" id="titoloLibro" placeholder="Es. Matematica.blu 3" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Carica Foto Indice (Scansione OCR)</label>
+                            <input type="file" id="fotoInput" accept="image/*" multiple onchange="gestisciFotoCaricate(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        </div>
+                    </div>
+
+                    <!-- GALLERIA THUMBNAILS -->
+                    <div id="gallery" class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2"></div>
+
+                    <button id="btnOCR" onclick="avviaOCRMultiplo()" disabled class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                        🔍 Estrai Testo Indice con OCR Space
+                    </button>
+                    <div id="ocrStatus" class="hidden text-center text-xs font-bold text-indigo-700 animate-pulse">Scansione in corso...</div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Indice Argomenti (1 per riga con Pag. Inizio) *</label>
+                        <textarea id="argomentiInput" rows="6" placeholder="Es:&#10;Capitolo 1: Equazioni di secondo grado pag. 12&#10;Capitolo 2: Disequazioni pag. 45&#10;Capitolo 3: Parabola e Proprietà pag. 80" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                    </div>
+
+                    <button onclick="generaEArchiviaPiano()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-extrabold text-base transition-all shadow-lg shadow-emerald-600/30">
+                        🚀 GENERA E ARCHIVIA PIANO DIDATTICO
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SEZIONE RISULTATI GENERATI -->
+        <div id="risultatiSection" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-4">
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Singoli giorni di festa o ponti dell'istituto (separati da virgola AAAA-MM-GG)</label>
-                    <input type="text" id="giorniExtraFesta" placeholder="2026-11-02, 2026-12-07, 2027-04-26" class="w-full p-2 bg-white border border-slate-300 rounded-lg font-mono">
-                </div>
-            </div>
-
-            <!-- Selezione Giorni e Ore Doppie -->
-            <div class="space-y-4 pt-2 border-t border-slate-100">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Giorni di lezione della materia</label>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                        <div>
-                            <input type="checkbox" id="giorno-1" value="1" class="hidden day-checkbox" checked onchange="aggiornaConfigurazioneOre()">
-                            <label for="giorno-1" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Lun</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="giorno-2" value="2" class="hidden day-checkbox" onchange="aggiornaConfigurazioneOre()">
-                            <label for="giorno-2" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mar</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="giorno-3" value="3" class="hidden day-checkbox" checked onchange="aggiornaConfigurazioneOre()">
-                            <label for="giorno-3" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Mer</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="giorno-4" value="4" class="hidden day-checkbox" onchange="aggiornaConfigurazioneOre()">
-                            <label for="giorno-4" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Gio</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="giorno-5" value="5" class="hidden day-checkbox" checked onchange="aggiornaConfigurazioneOre()">
-                            <label for="giorno-5" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Ven</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="giorno-6" value="6" class="hidden day-checkbox" onchange="aggiornaConfigurazioneOre()">
-                            <label for="giorno-6" class="block text-center p-2.5 border border-slate-200 rounded-xl cursor-pointer text-sm font-medium transition-all">Sab</label>
-                        </div>
+                    <div class="flex items-center gap-2">
+                        <span id="badgeIdPiano" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full font-mono text-xs font-bold">ID: ---</span>
+                        <span id="badgeOreTotali" class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">0 Ore</span>
                     </div>
+                    <h2 class="text-xl font-extrabold text-slate-900 mt-1">Piano Didattico Distribuito</h2>
+                    <p id="subtitolioRisultato" class="text-xs text-slate-500"></p>
                 </div>
-
-                <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100 space-y-3">
-                    <div class="flex justify-between items-center">
-                        <label class="block text-xs font-semibold text-blue-900 uppercase">Ore svolte in ciascun giorno</label>
-                        <span id="totaleOreSettimanali" class="text-xs font-bold bg-blue-600 text-white px-2.5 py-1 rounded-full">Totale: 4 ore/settimana</span>
-                    </div>
-                    <div id="contenitoreOreGiorni" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Modulo OCR Indice -->
-        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            <div class="flex justify-between items-center border-b pb-3 border-slate-100">
-                <h2 class="text-lg font-semibold text-slate-900">2. Indice del Libro con Pagine (Foto OCR o Incolla Testo)</h2>
-                <span id="fotoCount" class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">0 foto caricate</span>
-            </div>
-
-            <p class="text-xs text-slate-500">Puoi includere la pagina iniziale di ciascun argomento (es. <em>Equazioni di primo grado pag. 45</em>). L'app calcolerà la durata di ogni capitolo in base alla sua lunghezza in pagine.</p>
-
-            <div class="flex flex-wrap gap-3">
-                <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-4 py-2.5 rounded-xl border border-blue-200 text-sm inline-flex items-center space-x-2 transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span>Scansiona Foto Indice</span>
-                    <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="gestisciCaricamentoFoto(event)">
-                </label>
-                <button onclick="avviaOCRMultiplo()" id="btnOCR" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-50" disabled>
-                    Elabora OCR Foto
+                <button id="btnExcel" onclick="esportaExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md">
+                    📊 Esporta in Excel (.xlsx)
                 </button>
             </div>
 
-            <div id="gallery" class="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2"></div>
-            <div id="ocrStatus" class="hidden text-sm p-3 bg-amber-50 text-amber-800 rounded-xl border border-amber-200">Scansione OCR in corso...</div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Indice Libro (Un argomento per riga, con eventuale numero di pagina finale)</label>
-                <textarea id="argomentiInput" rows="6" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono" placeholder="Capitolo 1: Insiemi e Logica pag. 10&#10;Capitolo 2: Funzioni e Relazioni pag. 35&#10;Capitolo 3: Equazioni di 2° Grado pag. 80"></textarea>
-            </div>
-        </section>
-
-        <!-- Azioni -->
-        <div class="flex flex-col sm:flex-row gap-3">
-            <button onclick="generaEArchiviaPiano()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all text-center">
-                Genera e Archivia Piano Didattico
-            </button>
-            <button onclick="esportaExcel()" id="btnExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all hidden flex items-center justify-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                <span>Esporta in Excel (.xlsx)</span>
-            </button>
-        </div>
-
-        <!-- Riepilogo Statistiche e Tabella Risultati -->
-        <section id="risultatiSection" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hidden space-y-6">
-            
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span id="badgeIdPiano" class="bg-slate-900 text-white font-mono text-xs px-2.5 py-1 rounded-md font-bold"></span>
-                        <h2 class="text-lg font-semibold text-slate-900">Piano Didattico Calcolato</h2>
-                    </div>
-                    <p id="subtitolioRisultato" class="text-xs text-slate-500 mt-1"></p>
-                </div>
-                <div class="bg-blue-50 border border-blue-200 px-4 py-2 rounded-xl text-right">
-                    <span class="text-xs text-blue-700 font-semibold block uppercase">Ore Totali Effettive</span>
-                    <span id="badgeOreTotali" class="text-xl font-extrabold text-blue-900">0 Ore</span>
-                </div>
-            </div>
-
-            <!-- Contenitore Tabelle Divise per Mese e Settimana -->
+            <!-- CONTENITORE VISTA ORGANIZZATA PER MESE E SETTIMANA -->
             <div id="vistaOrganizzata" class="space-y-8"></div>
-        </section>
+        </div>
 
     </div>
 
+    <!-- MODALE ARCHIVIO PIANI -->
+    <div id="modalArchivio" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-slate-900">📚 Archivio Piani Salvati</h3>
+                <button onclick="chiudiModalArchivio()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            </div>
+            <div id="listaArchivio" class="overflow-y-auto space-y-2 flex-1 pr-1"></div>
+            <div class="border-t pt-3 flex justify-end">
+                <button onclick="chiudiModalArchivio()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGICA COMPLETA -->
     <script>
+        // Costanti Festività Fisse Italiane (MM-DD)
+        const festivitaFisse = ["01-01", "01-06", "04-25", "05-01", "06-02", "11-01", "12-08", "12-25", "12-26"];
+        const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+
         let immaginiCaricate = [];
         let pianoGenerato = [];
         let idPianoCorrente = "";
-        const nomiGiorni = ["", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
-        const festivitaFisse = ["11-01", "12-08", "12-25", "12-26", "01-01", "01-06", "04-25", "05-01", "06-02"];
 
-        window.onload = function() {
-            aggiornaConfigurazioneOre();
-            aggiornaMateriaEValutazioni();
+        // Inizializzazione
+        window.onload = () => {
             aggiornaContatoreArchivio();
+            calcolaTempoValutazioni();
         };
 
-        function generaSiglaScuola(nome) {
-            if (!nome) return "SCUOLA";
-            const paroleIgnorate = ["DI", "DEL", "DELLA", "DEGLI", "E", "STATALE", "ISTITUTO", "COMPRENSIVO"];
-            const parole = nome.toUpperCase().split(/\s+/).filter(p => !paroleIgnorate.includes(p) && p.length > 0);
-            if (parole.length === 1) return parole[0].substring(0, 4);
-            return parole.map(p => p[0]).join('');
-        }
-
-        function generaIDUnivocoProgressivo(siglaScuola, classe) {
-            const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
-            const numProgressivo = (archivio.length + 1).toString().padStart(3, '0');
-            const classeClean = classe.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-            return `${siglaScuola}-${classeClean}-${numProgressivo}`;
-        }
-
-        function toggleArchivio() {
-            const sec = document.getElementById('sezioneArchivio');
-            sec.classList.toggle('hidden');
-            if (!sec.classList.contains('hidden')) renderArchivio();
-        }
-
-        function aggiornaContatoreArchivio() {
-            const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
-            document.getElementById('countArchivio').innerText = archivio.length;
-        }
-
-        function salvaInArchivio(pianoOggetto) {
-            let archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
-            const index = archivio.findIndex(p => p.id === pianoOggetto.id);
-            if (index >= 0) {
-                archivio[index] = pianoOggetto;
-            } else {
-                archivio.unshift(pianoOggetto);
-            }
-            localStorage.setItem('archivioPiani', JSON.stringify(archivio));
-            aggiornaContatoreArchivio();
-        }
-
-        function renderArchivio() {
-            const lista = document.getElementById('listaArchivio');
-            const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
-            lista.innerHTML = '';
-
-            if (archivio.length === 0) {
-                lista.innerHTML = `<p class="text-xs text-slate-400 italic col-span-2 text-center py-4">Nessun piano ancora salvato nell'archivio.</p>`;
-                return;
-            }
-
-            archivio.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 hover:border-blue-300 transition-all text-xs';
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-mono font-bold text-blue-700">${p.id}</span>
-                        <span class="text-[10px] text-slate-400">${p.dataCreazione}</span>
-                    </div>
-                    <div class="font-semibold text-slate-800">${p.scuola} - Classe ${p.classe}</div>
-                    <div class="text-slate-500 text-[11px] truncate">${p.materia} • Libro: ${p.libro} • ${p.pianoData.length} Ore</div>
-                    <div class="flex gap-2 pt-2">
-                        <button onclick="caricaPianoDaArchivio('${p.id}')" class="flex-1 bg-blue-600 text-white py-1.5 rounded-lg font-medium hover:bg-blue-700">Visiona / Carica</button>
-                        <button onclick="eliminaDaArchivio('${p.id}')" class="px-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">✕</button>
-                    </div>`;
-                lista.appendChild(card);
-            });
-        }
-
-        function caricaPianoDaArchivio(id) {
-            const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
-            const pianoFound = archivio.find(p => p.id === id);
-            if (!pianoFound) return;
-
-            pianoGenerato = pianoFound.pianoData;
-            idPianoCorrente = pianoFound.id;
-
-            document.getElementById('badgeIdPiano').innerText = pianoFound.id;
-            document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
-            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${pianoFound.scuola} • Classe: ${pianoFound.classe} • Materia: ${pianoFound.materia} • Libro: ${pianoFound.libro}`;
-            
-            renderVistaOrganizzata();
-
-            document.getElementById('risultatiSection').classList.remove('hidden');
-            document.getElementById('btnExcel').classList.remove('hidden');
-            document.getElementById('risultatiSection').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function eliminaDaArchivio(id) {
-            let archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
-            archivio = archivio.filter(p => p.id !== id);
-            localStorage.setItem('archivioPiani', JSON.stringify(archivio));
-            aggiornaContatoreArchivio();
-            renderArchivio();
-        }
-
-        function svuotaArchivio() {
-            if (confirm("Sei sicuro di voler cancellare TUTTI i piani dall'archivio?")) {
-                localStorage.removeItem('archivioPiani');
-                aggiornaContatoreArchivio();
-                renderArchivio();
-            }
-        }
-
-        function aggiornaMateriaEValutazioni() { calcolaTempoValutazioni(); }
-
+        // Calcolo e visualizzazione dinamica dei parametri per le interrogazioni
         function calcolaTempoValutazioni() {
+            const numStud = parseInt(document.getElementById('numStudenti').value) || 24;
+            const votiMin = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
+            const modalitaOra = document.getElementById('modalitaOraSelect').value;
             const mat = document.getElementById('materiaSelect').value;
-            const nStud = parseInt(document.getElementById('numStudenti').value) || 24;
 
-            const desc = document.getElementById('descrizioneValutazioni');
-            const tempoSingolo = document.getElementById('tempoOraleSingolo');
-            const tempoOttimizzato = document.getElementById('tempoOraleOttimizzato');
             const badge = document.getElementById('badgeTargetVoti');
+            const desc = document.getElementById('descrizioneValutazioni');
 
-            let oreTradizionali = Math.ceil((nStud * 15) / 60);
-            let oreGruppo = Math.ceil((nStud * 5) / 60);
+            const totaleInterrogazioni = numStud * votiMin;
+            let capOra = (modalitaOra === "DIVISA") ? 1 : 2;
+            if (mat === "Fisica_O") capOra = numStud;
 
-            if (mat === 'Matematica') {
-                badge.innerText = "Target: 3-4 Scritti + 2-3 Orali per quadrimestre";
-                desc.innerHTML = `Per Matematica la norma richiede <strong>almeno 3 verifiche scritte e 2 valutazioni orali</strong> a quadrimestre. Distribuite a distanza di 3-4 settimane.`;
-            } else if (mat === 'Fisica_SO') {
-                badge.innerText = "Target: 2 Scritti + 2 Orali per quadrimestre";
-                desc.innerHTML = `Per Fisica (Licei Scientifici) il target congruo è <strong>2 verifiche scritte e 2 orali</strong> per quadrimestre.`;
-            } else {
-                badge.innerText = "Target: 2-3 Orali per quadrimestre (Solo Orale)";
-                desc.innerHTML = `Per Fisica (Solo Orale) servono <strong>2-3 valutazioni orali</strong>. Si consigliano le <em>prove scritte valevoli per l'orale</em> per valutare l'intera classe in 1 ora sola.`;
-            }
+            const oreDedicate = Math.ceil(totaleInterrogazioni / capOra);
 
-            tempoSingolo.innerHTML = `⚠️ <strong>Orale Tradizionale (1 ad 1):</strong> servono circa <strong>${oreTradizionali} ore di lezione</strong> per interrogare tutti i ${nStud} studenti (1 turno).`;
-            tempoOttimizzato.innerHTML = `💡 <strong>Prova Scritta valevole per Orale / Gruppi:</strong> valuti tutti in <strong>1 sola ora di lezione</strong> (o ${oreGruppo} ore con interrogazioni alla lavagna 3 a 3).`;
+            badge.innerText = `Target: ${votiMin} Voti Orali Minimi per Studente / Periodo`;
+            desc.innerHTML = `Per valutare <strong>${numStud} studenti</strong> con almeno <strong>${votiMin} voti orali ciascuno</strong> nei periodi definiti, servono <strong>${totaleInterrogazioni} valutazioni totali</strong> equivalenti a circa <strong>${oreDedicate} ore</strong> dedicate a periodo.`;
         }
 
-        function aggiornaConfigurazioneOre() {
-            const contenitore = document.getElementById('contenitoreOreGiorni');
-            contenitore.innerHTML = '';
-            for (let i = 1; i <= 6; i++) {
-                const chk = document.getElementById(`giorno-${i}`);
-                if (chk && chk.checked) {
-                    const selectId = `ore-giorno-${i}`;
-                    const val = document.getElementById(selectId) ? document.getElementById(selectId).value : "1";
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-200';
-                    div.innerHTML = `
-                        <span class="text-xs font-semibold text-slate-700">${nomiGiorni[i]}</span>
-                        <select id="${selectId}" onchange="calcolaTotaleOre()" class="bg-slate-50 border border-slate-300 rounded text-xs p-1 font-bold text-blue-600 outline-none">
-                            <option value="1" ${val==="1"?"selected":""}>1 Ora</option>
-                            <option value="2" ${val==="2"?"selected":""}>2 Ore (Doppia)</option>
-                            <option value="3" ${val==="3"?"selected":""}>3 Ore</option>
-                        </select>`;
-                    contenitore.appendChild(div);
-                }
-            }
-            calcolaTotaleOre();
-        }
+        // Gestione Caricamento Foto Indice
+        function gestisciFotoCaricate(event) {
+            const files = event.target.files;
+            if (!files.length) return;
 
-        function calcolaTotaleOre() {
-            let totale = 0;
-            for (let i = 1; i <= 6; i++) {
-                const select = document.getElementById(`ore-giorno-${i}`);
-                if (select) totale += parseInt(select.value);
-            }
-            document.getElementById('totaleOreSettimanali').innerText = `Totale: ${totale} ore/settimana`;
-        }
-
-        function gestisciCaricamentoFoto(event) {
-            Array.from(event.target.files).forEach(file => {
+            Array.from(files).forEach(file => {
                 const reader = new FileReader();
-                reader.onload = (e) => { immaginiCaricate.push(e.target.result); aggiornaGalleria(); };
+                reader.onload = (e) => {
+                    immaginiCaricate.push(e.target.result);
+                    aggiornaGalleria();
+                };
                 reader.readAsDataURL(file);
             });
         }
@@ -434,35 +298,49 @@
             document.getElementById('fotoCount').innerText = `${immaginiCaricate.length} foto caricate`;
             immaginiCaricate.forEach((src, index) => {
                 const div = document.createElement('div');
-                div.className = 'relative group border rounded-lg overflow-hidden h-24 bg-slate-100';
-                div.innerHTML = `<img src="${src}" class="w-full h-full object-cover"><button onclick="rimuoviFoto(${index})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs">✕</button>`;
+                div.className = 'relative group border rounded-lg overflow-hidden h-20 bg-slate-100 shadow-sm';
+                div.innerHTML = `<img src="${src}" class="w-full h-full object-cover"><button onclick="rimuoviFoto(${index})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-[10px] shadow">✕</button>`;
                 gallery.appendChild(div);
             });
             document.getElementById('btnOCR').disabled = immaginiCaricate.length === 0;
         }
 
-        function rimuoviFoto(index) { immaginiCaricate.splice(index, 1); aggiornaGalleria(); }
+        function rimuoviFoto(index) {
+            immaginiCaricate.splice(index, 1);
+            aggiornaGalleria();
+        }
 
+        // Esecuzione OCR su API OCR.Space
         async function avviaOCRMultiplo() {
             if (immaginiCaricate.length === 0) return;
             const status = document.getElementById('ocrStatus');
             status.classList.remove('hidden');
             let testoComplessivo = '';
+
             for (let i = 0; i < immaginiCaricate.length; i++) {
                 status.innerText = `Scansione OCR pagina ${i + 1} di ${immaginiCaricate.length}...`;
                 const formData = new FormData();
                 formData.append("base64Image", immaginiCaricate[i]);
                 formData.append("language", "ita");
                 try {
-                    const response = await fetch("https://api.ocr.space/parse/image", { method: "POST", headers: { "apikey": "helloworld" }, body: formData });
+                    const response = await fetch("https://api.ocr.space/parse/image", {
+                        method: "POST",
+                        headers: { "apikey": "helloworld" },
+                        body: formData
+                    });
                     const result = await response.json();
-                    if (result.ParsedResults && result.ParsedResults[0]) testoComplessivo += result.ParsedResults[0].ParsedText + '\n';
-                } catch (e) { console.error(e); }
+                    if (result.ParsedResults && result.ParsedResults[0]) {
+                        testoComplessivo += result.ParsedResults[0].ParsedText + '\n';
+                    }
+                } catch (e) {
+                    console.error("Errore OCR:", e);
+                }
             }
             status.classList.add('hidden');
             document.getElementById('argomentiInput').value = testoComplessivo.trim();
         }
 
+        // Verifica Giorni Festivi
         function isFesta(data) {
             const mm = String(data.getMonth() + 1).padStart(2, '0');
             const dd = String(data.getDate()).padStart(2, '0');
@@ -482,6 +360,7 @@
             return extra.includes(yyyymmdd);
         }
 
+        // Estrazione Pesi e Pagine Capitoli
         function estraiArgomentiConPesi(rawText) {
             const righe = rawText.split('\n').map(r => r.trim()).filter(r => r.length > 0);
             const argomenti = [];
@@ -507,6 +386,16 @@
             return argomenti;
         }
 
+        function generaSiglaScuola(nome) {
+            return nome.split(' ').map(w => w.charAt(0).toUpperCase()).join('').substring(0, 4) || "SCH";
+        }
+
+        function generaIDUnivocoProgressivo(sigla, classe) {
+            const timestamp = Date.now().toString().slice(-4);
+            return `PLN-${sigla}-${classe.toUpperCase()}-${timestamp}`;
+        }
+
+        // GENERATORE PRINCIPALE PIANO DIDATTICO CON PERIODI E TARGET STUDENTI
         function generaEArchiviaPiano() {
             const scuola = document.getElementById('nomeScuola').value.trim();
             const classe = document.getElementById('nomeClasse').value.trim();
@@ -518,6 +407,9 @@
             const valInizio = document.getElementById('dataInizio').value;
             const valFine = document.getElementById('dataFine').value;
             const numStudenti = parseInt(document.getElementById('numStudenti').value) || 24;
+            
+            const dataFinePeriodo1 = new Date(document.getElementById('dataFinePeriodo1').value);
+            const votiOraliMinimi = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
 
             if (!scuola || !classe || !libro || !argomentiRaw || !valInizio || !valFine) {
                 alert("Compila tutti i campi obbligatori (Scuola, Classe, Libro, Date e Indice).");
@@ -526,7 +418,6 @@
 
             const siglaScuola = generaSiglaScuola(scuola);
             const inizialeMateria = nomeMateria.charAt(0).toUpperCase();
-
             const argomentiPonderati = estraiArgomentiConPesi(argomentiRaw);
             const totalePagineLavoro = argomentiPonderati.reduce((acc, curr) => acc + curr.pagineTotali, 0);
 
@@ -542,18 +433,43 @@
                 }
             }
 
+            // 1. Conteggio Preliminare Ore per Periodo
+            let dataTemp = new Date(valInizio);
+            let oreTotaliP1 = 0;
+            let oreTotaliP2 = 0;
+
+            while (dataTemp <= dataFine) {
+                const day = dataTemp.getDay();
+                if (mappaOreGiorni[day] && !isFesta(dataTemp)) {
+                    if (dataTemp <= dataFinePeriodo1) oreTotaliP1 += mappaOreGiorni[day];
+                    else oreTotaliP2 += mappaOreGiorni[day];
+                }
+                dataTemp.setDate(dataTemp.getDate() + 1);
+            }
+
+            // 2. Calcolo Frequenza Interrogazioni per Coprire la Classe
+            let studentiPerOra = (modalitaOra === "DIVISA") ? 1 : 2;
+            if (selMat === 'Fisica_O') studentiPerOra = numStudenti;
+
+            const oreInterrogazioneP1 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
+            const intervalloP1 = Math.max(3, Math.floor(oreTotaliP1 / (oreInterrogazioneP1 + 1)));
+
+            const oreInterrogazioneP2 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
+            const intervalloP2 = Math.max(3, Math.floor(oreTotaliP2 / (oreInterrogazioneP2 + 1)));
+
+            // 3. Generazione Calendario Lezioni
             pianoGenerato = [];
             idPianoCorrente = generaIDUnivocoProgressivo(siglaScuola, classe);
             let numOraTotale = 1;
             let argIndex = 0;
-            let oreSpiegatePerArgomentoCorrente = 0;
-            
+            let oreSpiegateCapitolo = 0;
             let argomentiSpiegatiSet = new Set();
             let settimanaNumero = 1;
             let ultimoLunedi = null;
 
-            let passoVerificaScritta = (selMat === 'Matematica') ? 11 : 14; 
-            let passoOrale = (selMat === 'Fisica_O') ? 8 : 7; 
+            let oreContatorePeriodo = 0;
+            let interrogazioniFattePeriodo = 0;
+            let studentiGiaInterrogati = 0;
 
             while (dataCorrente <= dataFine) {
                 const dayOfWeek = dataCorrente.getDay();
@@ -565,45 +481,55 @@
 
                 if (mappaOreGiorni[dayOfWeek] && !isFesta(dataCorrente)) {
                     const oreInQuestoGiorno = mappaOreGiorni[dayOfWeek];
-                    
                     const aaaa = dataCorrente.getFullYear();
                     const mm = String(dataCorrente.getMonth() + 1).padStart(2, '0');
                     const dd = String(dataCorrente.getDate()).padStart(2, '0');
                     const dataFormattata = `${dd}/${mm}/${aaaa}`;
-                    
                     const codiceLezione = `${inizialeMateria}${aaaa}${mm}${dd}`;
                     const meseAnno = dataCorrente.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
                     const nomeGiorno = nomiGiorni[dayOfWeek];
 
+                    const periodoCorrente = (dataCorrente <= dataFinePeriodo1) ? "1° Periodo" : "2° Periodo";
+                    const intervalloTarget = (periodoCorrente === "1° Periodo") ? intervalloP1 : intervalloP2;
+                    const oreMaxPeriodo = (periodoCorrente === "1° Periodo") ? oreInterrogazioneP1 : oreInterrogazioneP2;
+
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
+                        oreContatorePeriodo++;
                         let argObj = argomentiPonderati[argIndex % argomentiPonderati.length];
                         let tipologia = "Spiegazione";
                         let dettaglioArgomento = "";
 
-                        // Controllo Verifiche e Interrogazioni dedicate
-                        if (numOraTotale > 1 && numOraTotale % passoVerificaScritta === 0 && argomentiSpiegatiSet.size > 0 && selMat !== 'Fisica_O') {
-                            tipologia = "Verifica Scritta";
-                            const argomentiGiaFatti = Array.from(argomentiSpiegatiSet).slice(-3).join(" • ");
-                            dettaglioArgomento = `VERIFICA SCRITTA su argomenti svolti: [ ${argomentiGiaFatti} ]`;
-                        } else if (numOraTotale > 1 && numOraTotale % passoOrale === 0 && argomentiSpiegatiSet.size > 0) {
+                        const deveInterrogare = (oreContatorePeriodo % intervalloTarget === 0) && 
+                                               (interrogazioniFattePeriodo < oreMaxPeriodo) && 
+                                               (argomentiSpiegatiSet.size > 0);
+
+                        if (deveInterrogare) {
+                            interrogazioniFattePeriodo++;
+                            const argGiaFatti = Array.from(argomentiSpiegatiSet).slice(-2).join(" • ");
+
                             if (selMat === 'Fisica_O') {
                                 tipologia = "Test Breve (Valore Orale)";
-                                const argomentiGiaFatti = Array.from(argomentiSpiegatiSet).slice(-2).join(" • ");
-                                dettaglioArgomento = `TEST SCRITTO CON VALORE ORALE (Valutazione rapida intera classe ${numStudenti} studenti) su: [ ${argomentiGiaFatti} ]`;
+                                dettaglioArgomento = `TEST SCRITTO PER VALUTAZIONE ORALE (Tutta la classe: ${numStudenti} stud.) su: [ ${argGiaFatti} ]`;
                             } else {
                                 tipologia = "Interrogazione Programmata";
-                                const argomentiGiaFatti = Array.from(argomentiSpiegatiSet).slice(-2).join(" • ");
-                                dettaglioArgomento = `INTERROGAZIONE A GRUPPI / Lavagna su: [ ${argomentiGiaFatti} ]`;
+                                const studDa = studentiGiaInterrogati + 1;
+                                studentiGiaInterrogati = Math.min(numStudenti, studentiGiaInterrogati + studentiPerOra);
+                                dettaglioArgomento = `INTERROGAZIONE PROGRAMMATA Studenti N° ${studDa} - ${studentiGiaInterrogati} di ${numStudenti} su: [ ${argGiaFatti} ] (${periodoCorrente})`;
+
+                                if (studentiGiaInterrogati >= numStudenti) studentiGiaInterrogati = 0;
                             }
+                        } else if (numOraTotale % 12 === 0 && selMat !== 'Fisica_O' && argomentiSpiegatiSet.size > 0) {
+                            tipologia = "Verifica Scritta";
+                            const argGiaFatti = Array.from(argomentiSpiegatiSet).slice(-3).join(" • ");
+                            dettaglioArgomento = `VERIFICA SCRITTA di ${periodoCorrente} su: [ ${argGiaFatti} ]`;
                         } else {
-                            // Lezione Ordinaria: verifica della modalità (Intera o Divisa a metà)
                             argomentiSpiegatiSet.add(argObj.titolo);
-                            oreSpiegatePerArgomentoCorrente++;
+                            oreSpiegateCapitolo++;
 
                             if (modalitaOra === "DIVISA") {
                                 tipologia = "½ Spiegazione + ½ Interrogazione";
-                                const ultimoArg = Array.from(argomentiSpiegatiSet).slice(-2, -1)[0] || "Argomenti precedenti";
-                                dettaglioArgomento = `(30 min) SPIEGAGIONE: ${argObj.titolo} | (30 min) INTERROGAZIONE / RIPASSO su: ${ultimoArg}`;
+                                const ultimoArg = Array.from(argomentiSpiegatiSet).slice(-2, -1)[0] || "Argomenti recenti";
+                                dettaglioArgomento = `(30m) SPIEGAZIONE: ${argObj.titolo} | (30m) INTERROGAZIONE / RIPASSO: ${ultimoArg}`;
                             } else {
                                 tipologia = "Spiegazione Ordinaria";
                                 dettaglioArgomento = argObj.titolo;
@@ -623,6 +549,7 @@
                             data: dataFormattata,
                             mese: meseAnno.charAt(0).toUpperCase() + meseAnno.slice(1),
                             settimana: `Settimana ${settimanaNumero}`,
+                            periodo: periodoCorrente,
                             giorno: etichettaGiorno,
                             materia: nomeMateria,
                             libro: libro,
@@ -633,16 +560,16 @@
                         numOraTotale++;
 
                         let oreRiconosciuteCapitolo = Math.max(2, Math.round((argObj.pagineTotali / totalePagineLavoro) * 50));
-                        if (oreSpiegatePerArgomentoCorrente >= oreRiconosciuteCapitolo) {
+                        if (oreSpiegateCapitolo >= oreRiconosciuteCapitolo) {
                             argIndex++;
-                            oreSpiegatePerArgomentoCorrente = 0;
+                            oreSpiegateCapitolo = 0;
                         }
                     }
                 }
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
             }
 
-            // Salvataggio nell'archivio locale
+            // Salvataggio
             const pianoOggetto = {
                 id: idPianoCorrente,
                 scuola: scuola,
@@ -655,17 +582,16 @@
             };
             salvaInArchivio(pianoOggetto);
 
-            // Render Interfaccia
             document.getElementById('badgeIdPiano').innerText = idPianoCorrente;
             document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
-            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Libro: ${libro}`;
-            
-            renderVistaOrganizzata();
+            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Target: ${votiOraliMinimi} Voti/Periodo`;
 
+            renderVistaOrganizzata();
             document.getElementById('risultatiSection').classList.remove('hidden');
             document.getElementById('btnExcel').classList.remove('hidden');
         }
 
+        // Visualizzazione dell'interfaccia divisa per Mese e Settimana
         function renderVistaOrganizzata() {
             const contenitore = document.getElementById('vistaOrganizzata');
             contenitore.innerHTML = '';
@@ -690,17 +616,18 @@
                 for (const [settimana, righeSettimana] of Object.entries(perSettimana)) {
                     const blockSett = document.createElement('div');
                     blockSett.className = 'bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2';
-                    
+
                     let htmlTabella = `
                         <div class="text-xs font-bold text-slate-500 uppercase">${settimana}</div>
                         <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-xs bg-white rounded-lg overflow-hidden border border-slate-200">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700">
-                                    <th class="p-2 border-b">Codice Lezione</th>
+                                    <th class="p-2 border-b">Codice</th>
                                     <th class="p-2 border-b">Ora N°</th>
                                     <th class="p-2 border-b">Data</th>
                                     <th class="p-2 border-b">Giorno</th>
+                                    <th class="p-2 border-b">Periodo</th>
                                     <th class="p-2 border-b">Argomento / Unità Didattica</th>
                                     <th class="p-2 border-b">Tipologia</th>
                                 </tr>
@@ -710,7 +637,7 @@
                     righeSettimana.forEach(row => {
                         let badgeColor = 'bg-blue-100 text-blue-700';
                         if (row.tipologia.includes('Verifica')) badgeColor = 'bg-red-100 text-red-700 font-bold';
-                        if (row.tipologia.includes('Interrogazione Programmata') || row.tipologia.includes('Test Breve')) badgeColor = 'bg-amber-100 text-amber-800 font-bold';
+                        if (row.tipologia.includes('Interrogazione Programmate') || row.tipologia.includes('Test Breve')) badgeColor = 'bg-amber-100 text-amber-800 font-bold';
                         if (row.tipologia.includes('½')) badgeColor = 'bg-indigo-100 text-indigo-800 font-semibold';
 
                         htmlTabella += `
@@ -719,6 +646,7 @@
                                 <td class="p-2 font-medium text-slate-500">${row.numero}</td>
                                 <td class="p-2 font-semibold text-slate-800">${row.data}</td>
                                 <td class="p-2 text-slate-600">${row.giorno}</td>
+                                <td class="p-2 text-slate-500 font-medium">${row.periodo}</td>
                                 <td class="p-2 text-slate-800 font-medium">${row.argomento}</td>
                                 <td class="p-2"><span class="px-2 py-0.5 text-[10px] rounded-full ${badgeColor}">${row.tipologia}</span></td>
                             </tr>`;
@@ -733,12 +661,14 @@
             }
         }
 
+        // Esportazione in foglio Excel
         function esportaExcel() {
             if (pianoGenerato.length === 0) return;
 
             const datiExcel = pianoGenerato.map(item => ({
                 "ID Piano": idPianoCorrente,
                 "Codice Lezione": item.codiceLezione,
+                "Periodo": item.periodo,
                 "Mese": item.mese,
                 "Settimana": item.settimana,
                 "N° Ora": item.numero,
@@ -754,6 +684,78 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Piano Didattico");
             XLSX.writeFile(wb, `${idPianoCorrente}_Piano_Didattico.xlsx`);
+        }
+
+        // Funzioni Gestione LocalStorage Archivio
+        function salvaInArchivio(pianoOggetto) {
+            let archivio = JSON.parse(localStorage.getItem('pianiDidatticiArchivio')) || [];
+            archivio.unshift(pianoOggetto);
+            localStorage.setItem('pianiDidatticiArchivio', JSON.stringify(archivio));
+            aggiornaContatoreArchivio();
+        }
+
+        function aggiornaContatoreArchivio() {
+            let archivio = JSON.parse(localStorage.getItem('pianiDidatticiArchivio')) || [];
+            document.getElementById('archivioCount').innerText = archivio.length;
+        }
+
+        function caricaArchivioInModal() {
+            let archivio = JSON.parse(localStorage.getItem('pianiDidatticiArchivio')) || [];
+            const lista = document.getElementById('listaArchivio');
+            lista.innerHTML = '';
+
+            if (archivio.length === 0) {
+                lista.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Nessun piano salvato in archivio.</p>';
+            } else {
+                archivio.forEach((p, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'p-3 bg-slate-50 border rounded-xl flex justify-between items-center hover:bg-slate-100 transition-all';
+                    div.innerHTML = `
+                        <div>
+                            <div class="font-bold text-xs text-blue-900">${p.id}</div>
+                            <div class="text-[11px] text-slate-600">${p.scuola} - Classe ${p.classe} (${p.materia})</div>
+                            <div class="text-[10px] text-slate-400">Creato il: ${p.dataCreazione}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="ripristinaPiano(${idx})" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold">Carica</button>
+                            <button onclick="eliminaPiano(${idx})" class="px-2 py-1 bg-red-600 text-white rounded-lg text-xs">✕</button>
+                        </div>
+                    `;
+                    lista.appendChild(div);
+                });
+            }
+
+            document.getElementById('modalArchivio').classList.remove('hidden');
+        }
+
+        function chiudiModalArchivio() {
+            document.getElementById('modalArchivio').classList.add('hidden');
+        }
+
+        function ripristinaPiano(index) {
+            let archivio = JSON.parse(localStorage.getItem('pianiDidatticiArchivio')) || [];
+            const selezionato = archivio[index];
+            if (!selezionato) return;
+
+            pianoGenerato = selezionato.pianoData;
+            idPianoCorrente = selezionato.id;
+
+            document.getElementById('badgeIdPiano').innerText = idPianoCorrente;
+            document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
+            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${selezionato.scuola} • Classe: ${selezionato.classe} • Materia: ${selezionato.materia}`;
+
+            renderVistaOrganizzata();
+            document.getElementById('risultatiSection').classList.remove('hidden');
+            document.getElementById('btnExcel').classList.remove('hidden');
+            chiudiModalArchivio();
+        }
+
+        function eliminaPiano(index) {
+            let archivio = JSON.parse(localStorage.getItem('pianiDidatticiArchivio')) || [];
+            archivio.splice(index, 1);
+            localStorage.setItem('pianiDidatticiArchivio', JSON.stringify(archivio));
+            caricaArchivioInModal();
+            aggiornaContatoreArchivio();
         }
     </script>
 </body>
