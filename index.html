@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generatore Piano Didattico Pro v0.8</title>
+    <title>Generatore Piano Didattico Pro v0.9 con Archivio</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS per export Excel -->
@@ -21,17 +21,34 @@
     <div class="max-w-4xl mx-auto space-y-6">
         
         <!-- Header App -->
-        <header class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <header class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div class="flex items-center space-x-3">
                 <div class="bg-blue-600 text-white p-3 rounded-xl">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-slate-900">Piano Didattico Annuale Professional</h1>
-                    <p class="text-sm text-slate-500">Gestione Classe • Ponderazione Voti (Statuto Studenti) • Matematica & Fisica • v0.8</p>
+                    <p class="text-sm text-slate-500">ID Univoco • Archivio Storico • Valutazioni Statuto Studenti • v0.9</p>
                 </div>
             </div>
+            <button onclick="toggleArchivio()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                <span>Archivio Piani (<span id="countArchivio">0</span>)</span>
+            </button>
         </header>
+
+        <!-- Sezione Archivio Piani (Nascosto di Default) -->
+        <section id="sezioneArchivio" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hidden space-y-4">
+            <div class="flex justify-between items-center border-b pb-3 border-slate-100">
+                <h2 class="text-md font-bold text-slate-900 flex items-center gap-2">
+                    <span>📁 Archivio Piani Salvati</span>
+                </h2>
+                <button onclick="svuotaArchivio()" class="text-xs text-red-600 hover:underline">Svuota Archivio</button>
+            </div>
+            <div id="listaArchivio" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                <!-- Lista dinamica dei piani salvati -->
+            </div>
+        </section>
 
         <!-- Form Parametri -->
         <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
@@ -178,8 +195,8 @@
 
         <!-- Azioni -->
         <div class="flex flex-col sm:flex-row gap-3">
-            <button onclick="generaPiano()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all text-center">
-                Genera Piano Didattico Avanzato
+            <button onclick="generaEArchiviaPiano()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all text-center">
+                Genera e Archivia Piano Didattico
             </button>
             <button onclick="esportaExcel()" id="btnExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-sm transition-all hidden flex items-center justify-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -192,8 +209,11 @@
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
                 <div>
-                    <h2 class="text-lg font-semibold text-slate-900">Piano Didattico Calcolato</h2>
-                    <p id="subtitolioRisultato" class="text-xs text-slate-500"></p>
+                    <div class="flex items-center space-x-2">
+                        <span id="badgeIdPiano" class="bg-slate-900 text-white font-mono text-xs px-2.5 py-1 rounded-md font-bold"></span>
+                        <h2 class="text-lg font-semibold text-slate-900">Piano Didattico Calcolato</h2>
+                    </div>
+                    <p id="subtitolioRisultato" class="text-xs text-slate-500 mt-1"></p>
                 </div>
                 <div class="bg-blue-50 border border-blue-200 px-4 py-2 rounded-xl text-right">
                     <span class="text-xs text-blue-700 font-semibold block uppercase">Ore Totali Effettive</span>
@@ -210,17 +230,112 @@
     <script>
         let immaginiCaricate = [];
         let pianoGenerato = [];
+        let idPianoCorrente = "";
         const nomiGiorni = ["", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
         const festivitaFisse = ["11-01", "12-08", "12-25", "12-26", "01-01", "01-06", "04-25", "05-01", "06-02"];
 
         window.onload = function() {
             aggiornaConfigurazioneOre();
             aggiornaMateriaEValutazioni();
+            aggiornaContatoreArchivio();
         };
 
-        function aggiornaMateriaEValutazioni() {
-            calcolaTempoValutazioni();
+        function generaIDUnivoco() {
+            const anno = new Date().getFullYear();
+            const casuale = Math.random().toString(36).substring(2, 8).toUpperCase();
+            return `PLAN-${anno}-${casuale}`;
         }
+
+        function toggleArchivio() {
+            const sec = document.getElementById('sezioneArchivio');
+            sec.classList.toggle('hidden');
+            if (!sec.classList.contains('hidden')) renderArchivio();
+        }
+
+        function aggiornaContatoreArchivio() {
+            const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
+            document.getElementById('countArchivio').innerText = archivio.length;
+        }
+
+        function salvaInArchivio(pianoOggetto) {
+            let archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
+            // Se esiste già con lo stesso ID, lo aggiorna
+            const index = archivio.findIndex(p => p.id === pianoOggetto.id);
+            if (index >= 0) {
+                archivio[index] = pianoOggetto;
+            } else {
+                archivio.unshift(pianoOggetto);
+            }
+            localStorage.setItem('archivioPiani', JSON.stringify(archivio));
+            aggiornaContatoreArchivio();
+        }
+
+        function renderArchivio() {
+            const lista = document.getElementById('listaArchivio');
+            const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
+            lista.innerHTML = '';
+
+            if (archivio.length === 0) {
+                lista.innerHTML = `<p class="text-xs text-slate-400 italic col-span-2 text-center py-4">Nessun piano ancora salvato nell'archivio.</p>`;
+                return;
+            }
+
+            archivio.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 hover:border-blue-300 transition-all text-xs';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono font-bold text-blue-700">${p.id}</span>
+                        <span class="text-[10px] text-slate-400">${p.dataCreazione}</span>
+                    </div>
+                    <div class="font-semibold text-slate-800">${p.materia} (${p.numStudenti} Studenti)</div>
+                    <div class="text-slate-500 text-[11px] truncate">Libro: ${p.libro} • ${p.pianoData.length} Ore</div>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="caricaPianoDaArchivio('${p.id}')" class="flex-1 bg-blue-600 text-white py-1.5 rounded-lg font-medium hover:bg-blue-700">Visiona / Carica</button>
+                        <button onclick="eliminaDaArchivio('${p.id}')" class="px-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">✕</button>
+                    </div>`;
+                lista.appendChild(card);
+            });
+        }
+
+        function caricaPianoDaArchivio(id) {
+            const archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
+            const pianoFound = archivio.find(p => p.id === id);
+            if (!pianoFound) return;
+
+            pianoGenerato = pianoFound.pianoData;
+            idPianoCorrente = pianoFound.id;
+
+            document.getElementById('badgeIdPiano').innerText = pianoFound.id;
+            document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
+            document.getElementById('subtitolioRisultato').innerText = `Materia: ${pianoFound.materia} • Classe: ${pianoFound.numStudenti} Studenti • Libro: ${pianoFound.libro}`;
+            
+            renderVistaOrganizzata();
+
+            document.getElementById('risultatiSection').classList.remove('hidden');
+            document.getElementById('btnExcel').classList.remove('hidden');
+            
+            // Scroll fino alla sezione risultati
+            document.getElementById('risultatiSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function eliminaDaArchivio(id) {
+            let archivio = JSON.parse(localStorage.getItem('archivioPiani') || '[]');
+            archivio = archivio.filter(p => p.id !== id);
+            localStorage.setItem('archivioPiani', JSON.stringify(archivio));
+            aggiornaContatoreArchivio();
+            renderArchivio();
+        }
+
+        function svuotaArchivio() {
+            if (confirm("Sei sicuro di voler cancellare TUTTI i piani dall'archivio?")) {
+                localStorage.removeItem('archivioPiani');
+                aggiornaContatoreArchivio();
+                renderArchivio();
+            }
+        }
+
+        function aggiornaMateriaEValutazioni() { calcolaTempoValutazioni(); }
 
         function calcolaTempoValutazioni() {
             const mat = document.getElementById('materiaSelect').value;
@@ -231,8 +346,8 @@
             const tempoOttimizzato = document.getElementById('tempoOraleOttimizzato');
             const badge = document.getElementById('badgeTargetVoti');
 
-            let oreTradizionali = Math.ceil((nStud * 15) / 60); // 15 min a studente
-            let oreGruppo = Math.ceil((nStud * 5) / 60); // 3 studenti alla volta (5 min a testa)
+            let oreTradizionali = Math.ceil((nStud * 15) / 60);
+            let oreGruppo = Math.ceil((nStud * 5) / 60);
 
             if (mat === 'Matematica') {
                 badge.innerText = "Target: 3-4 Scritti + 2-3 Orali per quadrimestre";
@@ -368,7 +483,7 @@
             return argomenti;
         }
 
-        function generaPiano() {
+        function generaEArchiviaPiano() {
             const selMat = document.getElementById('materiaSelect').value;
             const nomeMateria = document.getElementById('materiaSelect').options[document.getElementById('materiaSelect').selectedIndex].text;
             const libro = document.getElementById('titoloLibro').value.trim();
@@ -398,6 +513,7 @@
             }
 
             pianoGenerato = [];
+            idPianoCorrente = generaIDUnivoco();
             let numOraTotale = 1;
             let argIndex = 0;
             let oreSpiegatePerArgomentoCorrente = 0;
@@ -406,7 +522,6 @@
             let settimanaNumero = 1;
             let ultimoLunedi = null;
 
-            // Frequenze adattative in base alla materia
             let passoVerificaScritta = (selMat === 'Matematica') ? 11 : 14; 
             let passoOrale = (selMat === 'Fisica_O') ? 8 : 7; 
 
@@ -426,11 +541,9 @@
 
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
                         let argObj = argomentiPonderati[argIndex % argomentiPonderati.length];
-                        
                         let tipologia = "Spiegazione";
                         let dettaglioArgomento = argObj.titolo;
 
-                        // REGOLA 1: Verifiche e Interrogazioni solo su argomenti spiegati in precedenza
                         if (numOraTotale > 1 && numOraTotale % passoVerificaScritta === 0 && argomentiSpiegatiSet.size > 0 && selMat !== 'Fisica_O') {
                             tipologia = "Verifica Scritta";
                             const argomentiGiaFatti = Array.from(argomentiSpiegatiSet).slice(-3).join(" • ");
@@ -477,6 +590,19 @@
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
             }
 
+            // Salvataggio nell'archivio locale
+            const pianoOggetto = {
+                id: idPianoCorrente,
+                dataCreazione: new Date().toLocaleString('it-IT'),
+                materia: nomeMateria,
+                libro: libro,
+                numStudenti: numStudenti,
+                pianoData: pianoGenerato
+            };
+            salvaInArchivio(pianoOggetto);
+
+            // Render Interfaccia
+            document.getElementById('badgeIdPiano').innerText = idPianoCorrente;
             document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
             document.getElementById('subtitolioRisultato').innerText = `Materia: ${nomeMateria} • Classe: ${numStudenti} Studenti • Libro: ${libro}`;
             
@@ -554,6 +680,7 @@
             if (pianoGenerato.length === 0) return;
 
             const datiExcel = pianoGenerato.map(item => ({
+                "ID Piano": idPianoCorrente,
                 "Mese": item.mese,
                 "Settimana": item.settimana,
                 "N° Ora": item.numero,
@@ -568,7 +695,7 @@
             const ws = XLSX.utils.json_to_sheet(datiExcel);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Piano Didattico");
-            XLSX.writeFile(wb, `Piano_Didattico_${document.getElementById('materiaSelect').value}_2026_2027.xlsx`);
+            XLSX.writeFile(wb, `${idPianoCorrente}_Piano_Didattico.xlsx`);
         }
     </script>
 </body>
