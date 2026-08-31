@@ -17,7 +17,7 @@
         <header class="bg-gradient-to-r from-blue-900 via-indigo-800 to-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Piano Didattico Strategico Pro</h1>
-                <p class="text-blue-200 text-xs md:text-sm mt-1">Ponderazione didattica avanzata (Teoria + Esercizi + Difficoltà) & Calendario automatico</p>
+                <p class="text-blue-200 text-xs md:text-sm mt-1">Ponderazione didattica avanzata & Controllo Tassativo Voti Orali</p>
             </div>
             <div id="archivioPannello" class="flex gap-2">
                 <button onclick="caricaArchivioInModal()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-semibold backdrop-blur-md transition-all border border-white/20">
@@ -64,13 +64,13 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modalità D'Ora *</label>
                         <select id="modalitaOraSelect" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="INTERA">Ora Intera (60 min Spiegazione / Interrogazione)</option>
+                            <option value="INTERA">Ora Intera (Dedicata interamente a Spiegazione o Interrogazione)</option>
                             <option value="DIVISA">Ora Divisa (30 min Spiegazione + 30 min Interrogazione)</option>
                         </select>
                     </div>
 
                     <div class="pt-2 border-t space-y-3">
-                        <label class="block text-xs font-extrabold text-indigo-900 uppercase">Suddivisione Anno & Target Voti</label>
+                        <label class="block text-xs font-extrabold text-indigo-900 uppercase">Parametri Valutazione & Target Voti</label>
                         
                         <div>
                             <label class="block text-xs text-slate-500 mb-1">Struttura Anno Scolastico</label>
@@ -85,15 +85,21 @@
                             <input type="date" id="dataFinePeriodo1" value="2027-01-31" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm">
                         </div>
 
-                        <div>
-                            <label class="block text-xs text-slate-500 mb-1">Minimo Voti Orali / Studente per Periodo *</label>
-                            <input type="number" id="votiOraliMinimi" value="2" min="1" max="5" oninput="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-emerald-50 border border-emerald-300 font-bold text-emerald-800 rounded-lg text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] text-slate-600 font-semibold mb-1">Voti Minimi / Studente *</label>
+                                <input type="number" id="votiOraliMinimi" value="2" min="1" max="5" oninput="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-emerald-50 border border-emerald-300 font-bold text-emerald-800 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-600 font-semibold mb-1">Interrogati / Ora (o ½h) *</label>
+                                <input type="number" id="studentiPerOraInput" value="2" min="1" max="10" oninput="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-amber-50 border border-amber-300 font-bold text-amber-900 rounded-lg text-sm">
+                            </div>
                         </div>
                     </div>
 
                     <!-- BOX INFORMATIVO DETTAGLIO CALCOLO ORE -->
                     <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 space-y-2 text-xs shadow-sm">
-                        <div id="badgeTargetVoti" class="font-bold text-amber-900 border-b border-amber-200 pb-1">Target: 2 Voti Orali Minimi per Studente / Periodo</div>
+                        <div id="badgeTargetVoti" class="font-bold text-amber-900 border-b border-amber-200 pb-1">Target Valutazioni</div>
                         <div id="descrizioneValutazioni" class="text-amber-800 space-y-1"></div>
                     </div>
                 </div>
@@ -400,7 +406,6 @@ cap.7 La velocità pag.238</textarea>
             return extra.includes(yyyymmdd);
         }
 
-        // PARSING TESTO -> POPOLAMENTO INIZIALE STRUTTURATO
         function popolaGrigliaDaTesto() {
             const rawText = document.getElementById('argomentiInput').value.trim();
             const righe = rawText.split('\n').map(r => r.trim()).filter(r => r.length > 0);
@@ -431,8 +436,8 @@ cap.7 La velocità pag.238</textarea>
                 }
 
                 let pagTot = Math.max(1, pFin - pIni + 1);
-                let pagTeoria = Math.round(pagTot * 0.6); // 60% stima teoria
-                let pagEserc = pagTot - pagTeoria;       // 40% stima esercizi
+                let pagTeoria = Math.round(pagTot * 0.6);
+                let pagEserc = pagTot - pagTeoria;
 
                 argomentiGriglia.push({
                     titolo: temporanei[i].titolo,
@@ -440,7 +445,7 @@ cap.7 La velocità pag.238</textarea>
                     pagFin: pFin,
                     pagTeoria: pagTeoria,
                     pagEserc: pagEserc,
-                    difficolta: 1.5, // Standard Medio
+                    difficolta: 1.5,
                     oreManuali: null
                 });
             }
@@ -506,7 +511,6 @@ cap.7 La velocità pag.238</textarea>
         function aggiornaDatoGriglia(index, campo, valore) {
             argomentiGriglia[index][campo] = valore;
             
-            // Auto aggiornamento pagine teoria/esercizi se cambiano pagIni o pagFin
             if (campo === 'pagIni' || campo === 'pagFin') {
                 let pagTot = Math.max(1, argomentiGriglia[index].pagFin - argomentiGriglia[index].pagIni + 1);
                 argomentiGriglia[index].pagTeoria = Math.round(pagTot * 0.6);
@@ -517,35 +521,38 @@ cap.7 La velocità pag.238</textarea>
             aggiornaTuttoIlCalcolo();
         }
 
-        // MOTORE DI CALCOLO RIGOROSO PONDERATO
         function aggiornaTuttoIlCalcolo() {
             const numStud = parseInt(document.getElementById('numStudenti').value) || 24;
             const votiMin = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
+            const studentiPerOra = parseInt(document.getElementById('studentiPerOraInput').value) || 2;
             const modalitaOra = document.getElementById('modalitaOraSelect').value;
             const mat = document.getElementById('materiaSelect').value;
 
             const valInizio = new Date(document.getElementById('dataInizio').value);
             const valFine = new Date(document.getElementById('dataFine').value);
             const valFineProg = new Date(document.getElementById('dataFineProgramma').value);
-            const dataFinePeriodo1 = new Date(document.getElementById('dataFinePeriodo1').value);
 
-            // 1. Dettaglio Ore Interrogazione
+            // 1. Dettaglio Tassativo Interrogazioni
             const totaleInterrogazioniPeriodo = numStud * votiMin;
-            let capOra = (modalitaOra === "DIVISA") ? 1 : 2;
-            if (mat === "Fisica_O") capOra = numStud;
+            let oreDedicatePeriodo = 0;
 
-            const oreDedicatePeriodo = Math.ceil(totaleInterrogazioniPeriodo / capOra);
+            if (mat === "Fisica_O") {
+                oreDedicatePeriodo = votiMin; // 1 ora di test di classe equivale a 1 giro di voti per tutti
+            } else {
+                oreDedicatePeriodo = Math.ceil(totaleInterrogazioniPeriodo / studentiPerOra);
+            }
+
             const oreInterrogazioniAnno = oreDedicatePeriodo * 2;
 
             document.getElementById('badgeTargetVoti').innerText = `Target: ${votiMin} Voti Orali Minimi per Studente / Periodo`;
             document.getElementById('descrizioneValutazioni').innerHTML = `
-                <div>• Totalità interrogazioni richieste: <strong>${totaleInterrogazioniPeriodo} interrogazioni/periodo</strong></div>
-                <div>• Capacità interrogazione: <strong>${capOra} student${capOra > 1 ? 'i' : 'e'}/ora</strong></div>
+                <div>• Voti totali da registrare: <strong>${totaleInterrogazioniPeriodo} voti/periodo</strong></div>
+                <div>• Ritmo: <strong>${studentiPerOra} student${studentiPerOra > 1 ? 'i' : 'e'}/${modalitaOra === 'DIVISA' ? '½ ora' : 'ora'}</strong></div>
                 <div>• Ore necessarie 1° Periodo: <strong>${oreDedicatePeriodo} Ore</strong> | 2° Periodo: <strong>${oreDedicatePeriodo} Ore</strong></div>
                 <div class="pt-1 font-bold text-amber-900 border-t border-amber-200"> Totale Ore Interrogazioni Anno: ${oreInterrogazioniAnno} Ore</div>
             `;
 
-            // 2. Conteggio Ore Calendario Scolastico
+            // 2. Ore Calendario
             const mappaOreGiorni = {};
             for (let i = 1; i <= 6; i++) {
                 const chk = document.getElementById(`giorno-${i}`);
@@ -571,16 +578,14 @@ cap.7 La velocità pag.238</textarea>
                 dataTemp.setDate(dataTemp.getDate() + 1);
             }
 
-            // Ore di spiegazione fruibili prima del termine programma
-            const oreValutazioniEntroDataProg = Math.ceil((oreTotaliEntroDataProg / oreTotaliAnno) * oreInterrogazioniAnno);
+            const oreValutazioniEntroDataProg = Math.ceil((oreTotaliEntroDataProg / (oreTotaliAnno || 1)) * oreInterrogazioniAnno);
             const oreDisponibiliSpiegazioni = Math.max(5, oreTotaliEntroDataProg - oreValutazioniEntroDataProg);
 
             document.getElementById('lblOreSpiegazioneDisponibili').innerText = `${oreDisponibiliSpiegazioni} Ore`;
 
-            // 3. Formula di Ponderazione Pagine & Complessità
+            // 3. Ponderazione Argomenti
             let sommaPesiDidattici = 0;
             argomentiGriglia.forEach(item => {
-                // PESO FORMULA: (Teoria * 1.0 + Esercizi * 0.25) * Coeff Difficoltà
                 const peso = ((item.pagTeoria * 1.0) + (item.pagEserc * 0.25)) * item.difficolta;
                 item.pesoCalcolato = peso;
                 sommaPesiDidattici += peso;
@@ -605,7 +610,6 @@ cap.7 La velocità pag.238</textarea>
             document.getElementById('lblOreAssegnateTotali').innerText = `${oreAssegnateTotali} Ore`;
         }
 
-        // GENERAZIONE E SALVATAGGIO DEL PIANO COMPLETO
         function generaEArchiviaPiano() {
             const scuola = document.getElementById('nomeScuola').value.trim();
             const classe = document.getElementById('nomeClasse').value.trim();
@@ -618,6 +622,7 @@ cap.7 La velocità pag.238</textarea>
             const valFineProg = document.getElementById('dataFineProgramma').value;
             const numStudenti = parseInt(document.getElementById('numStudenti').value) || 24;
             const votiOraliMinimi = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
+            const studentiPerOra = parseInt(document.getElementById('studentiPerOraInput').value) || 2;
             const dataFinePeriodo1 = new Date(document.getElementById('dataFinePeriodo1').value);
             const dataFineProgrammaSpiegazioni = new Date(valFineProg);
 
@@ -629,7 +634,7 @@ cap.7 La velocità pag.238</textarea>
             const siglaScuola = generaSiglaScuola(scuola);
             const inizialeMateria = nomeMateria.charAt(0).toUpperCase();
 
-            // Calcolo del calendario
+            // Calcolo ore totali disponibili per periodo
             let dataTemp = new Date(valInizio);
             const dataFine = new Date(valFine);
 
@@ -642,24 +647,29 @@ cap.7 La velocità pag.238</textarea>
                 }
             }
 
-            let oreTotaliP1 = 0;
-            let oreTotaliP2 = 0;
+            let oreDisponibiliP1 = 0;
+            let oreDisponibiliP2 = 0;
 
             while (dataTemp <= dataFine) {
                 const day = dataTemp.getDay();
                 if (mappaOreGiorni[day] && !isFesta(dataTemp)) {
                     const nOre = mappaOreGiorni[day];
-                    if (dataTemp <= dataFinePeriodo1) oreTotaliP1 += nOre;
-                    else oreTotaliP2 += nOre;
+                    if (dataTemp <= dataFinePeriodo1) oreDisponibiliP1 += nOre;
+                    else oreDisponibiliP2 += nOre;
                 }
                 dataTemp.setDate(dataTemp.getDate() + 1);
             }
 
-            let studentiPerOra = (modalitaOra === "DIVISA") ? 1 : 2;
-            if (selMat === 'Fisica_O') studentiPerOra = numStudenti;
+            // TOTALE TASSATIVO INTERROGAZIONI RICHIESTE
+            const votiTotaliRichiestiP1 = numStudenti * votiOraliMinimi;
+            const votiTotaliRichiestiP2 = numStudenti * votiOraliMinimi;
 
-            const oreInterrogazioneP1 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
-            const oreInterrogazioneP2 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
+            const oreInterrogazioneP1 = selMat === 'Fisica_O' ? votiOraliMinimi : Math.ceil(votiTotaliRichiestiP1 / studentiPerOra);
+            const oreInterrogazioneP2 = selMat === 'Fisica_O' ? votiOraliMinimi : Math.ceil(votiTotaliRichiestiP2 / studentiPerOra);
+
+            // Calcolo passo esatto distribuzione interrogazioni (garantisce il raggiungimento del target prima del termine del periodo)
+            const passoInterrogazioniP1 = Math.max(2, Math.floor(oreDisponibiliP1 / (oreInterrogazioneP1 || 1)));
+            const passoInterrogazioniP2 = Math.max(2, Math.floor(oreDisponibiliP2 / (oreInterrogazioneP2 || 1)));
 
             let dataCorrente = new Date(valInizio);
             pianoGenerato = [];
@@ -672,12 +682,11 @@ cap.7 La velocità pag.238</textarea>
             let settimanaNumero = 1;
             let ultimoLunedi = null;
 
-            let oreContatorePeriodo = 0;
-            let interrogazioniFattePeriodo = 0;
+            let oreContatoreP1 = 0;
+            let oreContatoreP2 = 0;
+            let oreInterrogazioneEffettuateP1 = 0;
+            let oreInterrogazioneEffettuateP2 = 0;
             let studentiGiaInterrogati = 0;
-
-            const intervalloP1 = Math.max(3, Math.floor(oreTotaliP1 / (oreInterrogazioneP1 + 1)));
-            const intervalloP2 = Math.max(3, Math.floor(oreTotaliP2 / (oreInterrogazioneP2 + 1)));
 
             while (dataCorrente <= dataFine) {
                 const dayOfWeek = dataCorrente.getDay();
@@ -697,30 +706,37 @@ cap.7 La velocità pag.238</textarea>
                     const meseAnno = dataCorrente.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
                     const nomeGiorno = nomiGiorni[dayOfWeek];
 
-                    const periodoCorrente = (dataCorrente <= dataFinePeriodo1) ? "1° Periodo" : "2° Periodo";
-                    const intervalloTarget = (periodoCorrente === "1° Periodo") ? intervalloP1 : intervalloP2;
-                    const oreMaxPeriodo = (periodoCorrente === "1° Periodo") ? oreInterrogazioneP1 : oreInterrogazioneP2;
+                    const isPeriodo1 = (dataCorrente <= dataFinePeriodo1);
+                    const periodoCorrente = isPeriodo1 ? "1° Periodo" : "2° Periodo";
 
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
-                        oreContatorePeriodo++;
-                        
                         let idxMod = Math.min(argIndex, argomentiGriglia.length - 1);
                         let argObj = argomentiGriglia[idxMod];
 
                         let tipologia = "Spiegazione";
                         let dettaglioArgomento = "";
+                        let deveInterrogare = false;
 
-                        const deveInterrogare = (oreContatorePeriodo % intervalloTarget === 0) && 
-                                               (interrogazioniFattePeriodo < oreMaxPeriodo) && 
-                                               (argomentiSpiegatiSet.size > 0);
+                        if (isPeriodo1) {
+                            oreContatoreP1++;
+                            if (oreInterrogazioneEffettuateP1 < oreInterrogazioneP1 && (oreContatoreP1 % passoInterrogazioniP1 === 0) && argomentiSpiegatiSet.size > 0) {
+                                deveInterrogare = true;
+                                oreInterrogazioneEffettuateP1++;
+                            }
+                        } else {
+                            oreContatoreP2++;
+                            if (oreInterrogazioneEffettuateP2 < oreInterrogazioneP2 && (oreContatoreP2 % passoInterrogazioniP2 === 0) && argomentiSpiegatiSet.size > 0) {
+                                deveInterrogare = true;
+                                oreInterrogazioneEffettuateP2++;
+                            }
+                        }
 
                         if (deveInterrogare) {
-                            interrogazioniFattePeriodo++;
                             const argGiaFatti = Array.from(argomentiSpiegatiSet).slice(-2).join(" • ");
 
                             if (selMat === 'Fisica_O') {
                                 tipologia = "Test Breve (Valore Orale)";
-                                dettaglioArgomento = `TEST SCRITTO PER VALUTAZIONE ORALE (Classe intera: ${numStudenti} stud.) su: [ ${argGiaFatti} ]`;
+                                dettaglioArgomento = `TEST SCRITTO PER VALUTAZIONE ORALE (Tutta la classe: ${numStudenti} stud.) su: [ ${argGiaFatti} ]`;
                             } else {
                                 tipologia = "Interrogazione Programmata";
                                 const studDa = studentiGiaInterrogati + 1;
@@ -743,7 +759,7 @@ cap.7 La velocità pag.238</textarea>
                             if (modalitaOra === "DIVISA") {
                                 tipologia = "½ Spiegazione + ½ Interrogazione";
                                 const ultimoArg = Array.from(argomentiSpiegatiSet).slice(-2, -1)[0] || "Argomenti recenti";
-                                dettaglioArgomento = `(30m) SPIEGAZIONE: ${argObj.titolo} | (30m) INTERROGAZIONE / RIPASSO: ${ultimoArg}`;
+                                dettaglioArgomento = `(30m) SPIEGAZIONE: ${argObj.titolo} | (30m) INTERROGAZIONE: ${ultimoArg}`;
                             } else {
                                 tipologia = "Spiegazione Ordinaria";
                                 dettaglioArgomento = argObj.titolo;
@@ -796,7 +812,7 @@ cap.7 La velocità pag.238</textarea>
 
             document.getElementById('badgeIdPiano').innerText = idPianoCorrente;
             document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
-            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Target: ${votiOraliMinimi} Voti/Periodo • Fine Prog: ${valFineProg}`;
+            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Ritmo Interrogazioni: ${studentiPerOra} stud/ora`;
 
             renderVistaOrganizzata();
             document.getElementById('risultatiSection').classList.remove('hidden');
