@@ -17,7 +17,7 @@
         <header class="bg-gradient-to-r from-blue-900 via-indigo-800 to-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Piano Didattico Strategico</h1>
-                <p class="text-blue-200 text-xs md:text-sm mt-1">Generazione automatica lezioni, scansione OCR e garanzia voti orali per studente</p>
+                <p class="text-blue-200 text-xs md:text-sm mt-1">Generazione automatica lezioni, bilanciamento argomenti e programmazione interrogazioni</p>
             </div>
             <div id="archivioPannello" class="flex gap-2">
                 <button onclick="caricaArchivioInModal()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-semibold backdrop-blur-md transition-all border border-white/20">
@@ -29,7 +29,7 @@
         <!-- MAIN FORM CONTAINER -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- COLONNA SINISTRA: Parametri Scuola, Periodi e Valutazioni -->
+            <!-- COLONNA SINISTRA: Parametri Corso -->
             <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
                 <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
                     <span>⚙️</span> Parametri Corso & Periodi
@@ -69,7 +69,6 @@
                         </select>
                     </div>
 
-                    <!-- STRUTTURA DELL'ANNO SCOLASTICO E PERIODI -->
                     <div class="pt-2 border-t space-y-3">
                         <label class="block text-xs font-extrabold text-indigo-900 uppercase">Suddivisione Anno & Target Voti</label>
                         
@@ -92,38 +91,42 @@
                         </div>
                     </div>
 
-                    <!-- BOX INFORMATIVO TARGET ORALI -->
-                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1 text-xs">
-                        <div id="badgeTargetVoti" class="font-bold text-amber-900">Target: 2 Voti Orali Minimi per Studente / Periodo</div>
-                        <div id="descrizioneValutazioni" class="text-amber-800"></div>
+                    <!-- BOX INFORMATIVO DETTAGLIO CALCOLO ORE INTERROGAZIONI -->
+                    <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 space-y-2 text-xs shadow-sm">
+                        <div id="badgeTargetVoti" class="font-bold text-amber-900 border-b border-amber-200 pb-1">Target: 2 Voti Orali Minimi per Studente / Periodo</div>
+                        <div id="descrizioneValutazioni" class="text-amber-800 space-y-1"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- COLONNA CENTRALE E DESTRA: Calendario, OCR e Programma -->
+            <!-- COLONNA CENTRALE E DESTRA -->
             <div class="lg:col-span-2 space-y-6">
                 
-                <!-- CALENDARIO E ORARIO SETTIMANALE -->
+                <!-- CALENDARIO -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
-                        <span>📅</span> Calendario Lezioni & Orario
+                        <span>📅</span> Calendario Lezioni & Termine Programma
                     </h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Inizio Anno *</label>
-                            <input type="date" id="dataInizio" value="2026-09-15" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium">
+                            <input type="date" id="dataInizio" value="2026-09-15" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium">
+                        </div>
+                        <!-- MODIFICA 2: DATA FINE PROGRAMMA SPIEGAZIONI -->
+                        <div>
+                            <label class="block text-xs font-bold text-amber-700 uppercase mb-1">Fine Programma Spiegazioni *</label>
+                            <input type="date" id="dataFineProgramma" value="2027-05-15" class="w-full p-2 bg-amber-50/60 border border-amber-300 rounded-lg text-xs font-bold text-amber-900">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Fine Anno *</label>
-                            <input type="date" id="dataFine" value="2027-06-08" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Fine Anno (Lezioni) *</label>
+                            <input type="date" id="dataFine" value="2027-06-08" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Orario Settimanale Lezioni</label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-                            <!-- Lunedi - Sabato -->
                             <script>
                                 const giorni = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
                                 giorni.forEach((g, idx) => {
@@ -143,7 +146,6 @@
                         </div>
                     </div>
 
-                    <!-- VACANZE E FESTE -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-500 uppercase">Vacanze Natale (Inizio - Fine)</label>
@@ -166,7 +168,7 @@
                     </div>
                 </div>
 
-                <!-- CARICAMENTO INDICE E OCR -->
+                <!-- CARICAMENTO INDICE -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center justify-between">
                         <span class="flex items-center gap-2">📖 Libro & Indice Digitale</span>
@@ -176,7 +178,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Titolo Libro di Testo *</label>
-                            <input type="text" id="titoloLibro" placeholder="Es. Matematica.blu 3" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
+                            <input type="text" id="titoloLibro" placeholder="Es. Fisica Multiversum 1" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Carica Foto Indice (Scansione OCR)</label>
@@ -184,7 +186,6 @@
                         </div>
                     </div>
 
-                    <!-- GALLERIA THUMBNAILS -->
                     <div id="gallery" class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2"></div>
 
                     <button id="btnOCR" onclick="avviaOCRMultiplo()" disabled class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
@@ -194,7 +195,14 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Indice Argomenti (1 per riga con Pag. Inizio) *</label>
-                        <textarea id="argomentiInput" rows="6" placeholder="Es:&#10;Capitolo 1: Equazioni di secondo grado pag. 12&#10;Capitolo 2: Disequazioni pag. 45&#10;Capitolo 3: Parabola e Proprietà pag. 80" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                        <textarea id="argomentiInput" rows="8" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none">Strumenti matematici pag.2
+cap.1 Le grandezze fisiche pag.32
+cap.2 La Misura pag.64
+cap.3 La Luce pag.102
+cap.4 I vettori e le forze pag.140
+cap.5 L'equilibrio dei solidi pag.180
+cap.6 L'equilibrio dei fluidi pag.210
+cap.7 La velocità pag.238</textarea>
                     </div>
 
                     <button onclick="generaEArchiviaPiano()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-extrabold text-base transition-all shadow-lg shadow-emerald-600/30">
@@ -216,12 +224,20 @@
                     <h2 class="text-xl font-extrabold text-slate-900 mt-1">Piano Didattico Distribuito</h2>
                     <p id="subtitolioRisultato" class="text-xs text-slate-500"></p>
                 </div>
+
+                <!-- LEGENDA COLORI TIPOLOGIE -->
+                <div class="flex flex-wrap gap-2 text-[11px] font-semibold">
+                    <span class="px-2.5 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200">📘 Spiegazione</span>
+                    <span class="px-2.5 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300">🟨 Interrogazione</span>
+                    <span class="px-2.5 py-1 rounded bg-red-100 text-red-800 border border-red-300">📕 Verifica</span>
+                    <span class="px-2.5 py-1 rounded bg-purple-100 text-purple-800 border border-purple-300">🟣 Ripasso Finale</span>
+                </div>
+
                 <button id="btnExcel" onclick="esportaExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md">
                     📊 Esporta in Excel (.xlsx)
                 </button>
             </div>
 
-            <!-- CONTENITORE VISTA ORGANIZZATA PER MESE E SETTIMANA -->
             <div id="vistaOrganizzata" class="space-y-8"></div>
         </div>
 
@@ -241,9 +257,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGICA COMPLETA -->
     <script>
-        // Costanti Festività Fisse Italiane (MM-DD)
         const festivitaFisse = ["01-01", "01-06", "04-25", "05-01", "06-02", "11-01", "12-08", "12-25", "12-26"];
         const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
 
@@ -251,13 +265,12 @@
         let pianoGenerato = [];
         let idPianoCorrente = "";
 
-        // Inizializzazione
         window.onload = () => {
             aggiornaContatoreArchivio();
             calcolaTempoValutazioni();
         };
 
-        // Calcolo e visualizzazione dinamica dei parametri per le interrogazioni
+        // MODIFICA 1: VISUALIZZA IL CALCOLO ANALITICO DELLE ORE DI INTERROGAZIONE
         function calcolaTempoValutazioni() {
             const numStud = parseInt(document.getElementById('numStudenti').value) || 24;
             const votiMin = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
@@ -267,17 +280,23 @@
             const badge = document.getElementById('badgeTargetVoti');
             const desc = document.getElementById('descrizioneValutazioni');
 
-            const totaleInterrogazioni = numStud * votiMin;
+            const totaleInterrogazioniPeriodo = numStud * votiMin;
             let capOra = (modalitaOra === "DIVISA") ? 1 : 2;
             if (mat === "Fisica_O") capOra = numStud;
 
-            const oreDedicate = Math.ceil(totaleInterrogazioni / capOra);
+            const oreDedicatePeriodo = Math.ceil(totaleInterrogazioniPeriodo / capOra);
+            const oreDedicateAnno = oreDedicatePeriodo * 2;
 
             badge.innerText = `Target: ${votiMin} Voti Orali Minimi per Studente / Periodo`;
-            desc.innerHTML = `Per valutare <strong>${numStud} studenti</strong> con almeno <strong>${votiMin} voti orali ciascuno</strong> nei periodi definiti, servono <strong>${totaleInterrogazioni} valutazioni totali</strong> equivalenti a circa <strong>${oreDedicate} ore</strong> dedicate a periodo.`;
+            desc.innerHTML = `
+                <div>• Totalità interrogazioni richieste: <strong>${totaleInterrogazioniPeriodo} interrogazioni/periodo</strong></div>
+                <div>• Capacità interrogazione: <strong>${capOra} student${capOra > 1 ? 'i' : 'e'}/ora</strong></div>
+                <div>• Ore necessarie 1° Periodo: <strong>${oreDedicatePeriodo} Ore</strong></div>
+                <div>• Ore necessarie 2° Periodo: <strong>${oreDedicatePeriodo} Ore</strong></div>
+                <div class="pt-1 font-bold text-amber-900 border-t border-amber-200"> Totale Ore Interrogazioni Anno: ${oreDedicateAnno} Ore</div>
+            `;
         }
 
-        // Gestione Caricamento Foto Indice
         function gestisciFotoCaricate(event) {
             const files = event.target.files;
             if (!files.length) return;
@@ -310,7 +329,6 @@
             aggiornaGalleria();
         }
 
-        // Esecuzione OCR su API OCR.Space
         async function avviaOCRMultiplo() {
             if (immaginiCaricate.length === 0) return;
             const status = document.getElementById('ocrStatus');
@@ -340,7 +358,6 @@
             document.getElementById('argomentiInput').value = testoComplessivo.trim();
         }
 
-        // Verifica Giorni Festivi
         function isFesta(data) {
             const mm = String(data.getMonth() + 1).padStart(2, '0');
             const dd = String(data.getDate()).padStart(2, '0');
@@ -360,7 +377,6 @@
             return extra.includes(yyyymmdd);
         }
 
-        // Estrazione Pesi e Pagine Capitoli
         function estraiArgomentiConPesi(rawText) {
             const righe = rawText.split('\n').map(r => r.trim()).filter(r => r.length > 0);
             const argomenti = [];
@@ -374,13 +390,14 @@
                 argomenti.push({
                     titolo: titolo || riga,
                     paginaInizio: pagina,
-                    pagineTotali: 10
+                    pagineTotali: 30
                 });
             }
 
             for (let i = 0; i < argomenti.length - 1; i++) {
-                if (argomenti[i].paginaInizio && argomenti[i+1].paginaInizio && argomenti[i+1].paginaInizio > argomenti[i].paginaInizio) {
-                    argomenti[i].pagineTotali = argomenti[i+1].paginaInizio - argomenti[i].paginaInizio;
+                if (argomenti[i].paginaInizio !== null && argomenti[i+1].paginaInizio !== null) {
+                    const diff = argomenti[i+1].paginaInizio - argomenti[i].paginaInizio;
+                    if (diff > 0) argomenti[i].pagineTotali = diff;
                 }
             }
             return argomenti;
@@ -395,7 +412,7 @@
             return `PLN-${sigla}-${classe.toUpperCase()}-${timestamp}`;
         }
 
-        // GENERATORE PRINCIPALE PIANO DIDATTICO CON PERIODI E TARGET STUDENTI
+        // GENERATORE COMPLETO CON FINE PROGRAMMA E COLORAZIONE
         function generaEArchiviaPiano() {
             const scuola = document.getElementById('nomeScuola').value.trim();
             const classe = document.getElementById('nomeClasse').value.trim();
@@ -406,13 +423,15 @@
             const argomentiRaw = document.getElementById('argomentiInput').value.trim();
             const valInizio = document.getElementById('dataInizio').value;
             const valFine = document.getElementById('dataFine').value;
+            const valFineProg = document.getElementById('dataFineProgramma').value; // MODIFICA 2
             const numStudenti = parseInt(document.getElementById('numStudenti').value) || 24;
             
             const dataFinePeriodo1 = new Date(document.getElementById('dataFinePeriodo1').value);
+            const dataFineProgrammaSpiegazioni = new Date(valFineProg);
             const votiOraliMinimi = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
 
-            if (!scuola || !classe || !libro || !argomentiRaw || !valInizio || !valFine) {
-                alert("Compila tutti i campi obbligatori (Scuola, Classe, Libro, Date e Indice).");
+            if (!scuola || !classe || !libro || !argomentiRaw || !valInizio || !valFine || !valFineProg) {
+                alert("Compila tutti i campi obbligatori compresa la Data di Fine Programma.");
                 return;
             }
 
@@ -421,7 +440,7 @@
             const argomentiPonderati = estraiArgomentiConPesi(argomentiRaw);
             const totalePagineLavoro = argomentiPonderati.reduce((acc, curr) => acc + curr.pagineTotali, 0);
 
-            let dataCorrente = new Date(valInizio);
+            let dataTemp = new Date(valInizio);
             const dataFine = new Date(valFine);
 
             const mappaOreGiorni = {};
@@ -433,33 +452,46 @@
                 }
             }
 
-            // 1. Conteggio Preliminare Ore per Periodo
-            let dataTemp = new Date(valInizio);
+            // MODIFICA 2: CALCOLO ORE UTILI ESCLUSIVAMENTE FINO ALLA FINE PROGRAMMA
+            let oreTotaliSpiegazioneFinoADataFineProg = 0;
             let oreTotaliP1 = 0;
             let oreTotaliP2 = 0;
 
             while (dataTemp <= dataFine) {
                 const day = dataTemp.getDay();
                 if (mappaOreGiorni[day] && !isFesta(dataTemp)) {
-                    if (dataTemp <= dataFinePeriodo1) oreTotaliP1 += mappaOreGiorni[day];
-                    else oreTotaliP2 += mappaOreGiorni[day];
+                    const nOre = mappaOreGiorni[day];
+                    if (dataTemp <= dataFinePeriodo1) oreTotaliP1 += nOre;
+                    else oreTotaliP2 += nOre;
+
+                    if (dataTemp <= dataFineProgrammaSpiegazioni) {
+                        oreTotaliSpiegazioneFinoADataFineProg += nOre;
+                    }
                 }
                 dataTemp.setDate(dataTemp.getDate() + 1);
             }
 
-            // 2. Calcolo Frequenza Interrogazioni per Coprire la Classe
             let studentiPerOra = (modalitaOra === "DIVISA") ? 1 : 2;
             if (selMat === 'Fisica_O') studentiPerOra = numStudenti;
 
             const oreInterrogazioneP1 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
-            const intervalloP1 = Math.max(3, Math.floor(oreTotaliP1 / (oreInterrogazioneP1 + 1)));
-
             const oreInterrogazioneP2 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
-            const intervalloP2 = Math.max(3, Math.floor(oreTotaliP2 / (oreInterrogazioneP2 + 1)));
+            
+            // Sottraiamo le ore di valutazione stimata entro la data fine programma
+            const oreValutazioniEntroDataProg = Math.ceil((oreTotaliSpiegazioneFinoADataFineProg / (oreTotaliP1 + oreTotaliP2)) * (oreInterrogazioneP1 + oreInterrogazioneP2));
+            const oreEffettiveSoloSpiegazione = Math.max(10, oreTotaliSpiegazioneFinoADataFineProg - oreValutazioniEntroDataProg);
 
-            // 3. Generazione Calendario Lezioni
+            // ASSEGNAZIONE DELLE ORE RIGOROSAMENTE PONDERATA
+            argomentiPonderati.forEach(arg => {
+                const perc = arg.pagineTotali / totalePagineLavoro;
+                arg.oreTarget = Math.max(1, Math.round(perc * oreEffettiveSoloSpiegazione));
+            });
+
+            // GENERAZIONE CALENDARIO LEZIONI
+            let dataCorrente = new Date(valInizio);
             pianoGenerato = [];
             idPianoCorrente = generaIDUnivocoProgressivo(siglaScuola, classe);
+            
             let numOraTotale = 1;
             let argIndex = 0;
             let oreSpiegateCapitolo = 0;
@@ -470,6 +502,9 @@
             let oreContatorePeriodo = 0;
             let interrogazioniFattePeriodo = 0;
             let studentiGiaInterrogati = 0;
+
+            const intervalloP1 = Math.max(3, Math.floor(oreTotaliP1 / (oreInterrogazioneP1 + 1)));
+            const intervalloP2 = Math.max(3, Math.floor(oreTotaliP2 / (oreInterrogazioneP2 + 1)));
 
             while (dataCorrente <= dataFine) {
                 const dayOfWeek = dataCorrente.getDay();
@@ -495,7 +530,10 @@
 
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
                         oreContatorePeriodo++;
-                        let argObj = argomentiPonderati[argIndex % argomentiPonderati.length];
+                        
+                        let idxMod = Math.min(argIndex, argomentiPonderati.length - 1);
+                        let argObj = argomentiPonderati[idxMod];
+
                         let tipologia = "Spiegazione";
                         let dettaglioArgomento = "";
 
@@ -509,7 +547,7 @@
 
                             if (selMat === 'Fisica_O') {
                                 tipologia = "Test Breve (Valore Orale)";
-                                dettaglioArgomento = `TEST SCRITTO PER VALUTAZIONE ORALE (Tutta la classe: ${numStudenti} stud.) su: [ ${argGiaFatti} ]`;
+                                dettaglioArgomento = `TEST SCRITTO PER VALUTAZIONE ORALE (Classe intera: ${numStudenti} stud.) su: [ ${argGiaFatti} ]`;
                             } else {
                                 tipologia = "Interrogazione Programmata";
                                 const studDa = studentiGiaInterrogati + 1;
@@ -522,7 +560,12 @@
                             tipologia = "Verifica Scritta";
                             const argGiaFatti = Array.from(argomentiSpiegatiSet).slice(-3).join(" • ");
                             dettaglioArgomento = `VERIFICA SCRITTA di ${periodoCorrente} su: [ ${argGiaFatti} ]`;
+                        } else if (dataCorrente > dataFineProgrammaSpiegazioni) {
+                            // MODIFICA 2: ORE SUCCESSIVE ALLA FINE DEL PROGRAMMA
+                            tipologia = "Ripasso Finale / Recupero";
+                            dettaglioArgomento = `RIPASSO GENERALE E CONSOLIDAMENTO: Preparazione agli scrutinii finali`;
                         } else {
+                            // ORA DI SPIEGAZIONE ORDINARIA
                             argomentiSpiegatiSet.add(argObj.titolo);
                             oreSpiegateCapitolo++;
 
@@ -533,6 +576,11 @@
                             } else {
                                 tipologia = "Spiegazione Ordinaria";
                                 dettaglioArgomento = argObj.titolo;
+                            }
+
+                            if (oreSpiegateCapitolo >= argObj.oreTarget && argIndex < argomentiPonderati.length - 1) {
+                                argIndex++;
+                                oreSpiegateCapitolo = 0;
                             }
                         }
 
@@ -558,18 +606,12 @@
                         });
 
                         numOraTotale++;
-
-                        let oreRiconosciuteCapitolo = Math.max(2, Math.round((argObj.pagineTotali / totalePagineLavoro) * 50));
-                        if (oreSpiegateCapitolo >= oreRiconosciuteCapitolo) {
-                            argIndex++;
-                            oreSpiegateCapitolo = 0;
-                        }
                     }
                 }
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
             }
 
-            // Salvataggio
+            // SALVATAGGIO IN LOCAL STORAGE
             const pianoOggetto = {
                 id: idPianoCorrente,
                 scuola: scuola,
@@ -584,14 +626,14 @@
 
             document.getElementById('badgeIdPiano').innerText = idPianoCorrente;
             document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
-            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Target: ${votiOraliMinimi} Voti/Periodo`;
+            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Target: ${votiOraliMinimi} Voti/Periodo • Fine Programma: ${valFineProg}`;
 
             renderVistaOrganizzata();
             document.getElementById('risultatiSection').classList.remove('hidden');
             document.getElementById('btnExcel').classList.remove('hidden');
         }
 
-        // Visualizzazione dell'interfaccia divisa per Mese e Settimana
+        // MODIFICA 3: COLORAZIONE DISTINTA PER TIPOLOGIA DI LEZIONE
         function renderVistaOrganizzata() {
             const contenitore = document.getElementById('vistaOrganizzata');
             contenitore.innerHTML = '';
@@ -620,7 +662,7 @@
                     let htmlTabella = `
                         <div class="text-xs font-bold text-slate-500 uppercase">${settimana}</div>
                         <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs bg-white rounded-lg overflow-hidden border border-slate-200">
+                        <table class="w-full text-left border-collapse text-xs bg-white rounded-lg overflow-hidden border border-slate-200 shadow-sm">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700">
                                     <th class="p-2 border-b">Codice</th>
@@ -635,20 +677,36 @@
                             <tbody class="divide-y divide-slate-100">`;
 
                     righeSettimana.forEach(row => {
-                        let badgeColor = 'bg-blue-100 text-blue-700';
-                        if (row.tipologia.includes('Verifica')) badgeColor = 'bg-red-100 text-red-700 font-bold';
-                        if (row.tipologia.includes('Interrogazione Programmate') || row.tipologia.includes('Test Breve')) badgeColor = 'bg-amber-100 text-amber-800 font-bold';
-                        if (row.tipologia.includes('½')) badgeColor = 'bg-indigo-100 text-indigo-800 font-semibold';
+                        let rowStyle = '';
+                        let badgeColor = '';
+
+                        // MODIFICA 3: COLORAZIONE DELLE RIGHE E BADGE
+                        if (row.tipologia.includes('Interrogazione') || row.tipologia.includes('Test Breve')) {
+                            rowStyle = 'bg-amber-50/70 hover:bg-amber-100/80';
+                            badgeColor = 'bg-amber-200 text-amber-900 font-extrabold border border-amber-300 shadow-sm';
+                        } else if (row.tipologia.includes('Verifica')) {
+                            rowStyle = 'bg-red-50/70 hover:bg-red-100/80';
+                            badgeColor = 'bg-red-200 text-red-900 font-extrabold border border-red-300 shadow-sm';
+                        } else if (row.tipologia.includes('Ripasso Finale')) {
+                            rowStyle = 'bg-purple-50/70 hover:bg-purple-100/80';
+                            badgeColor = 'bg-purple-200 text-purple-900 font-bold border border-purple-300';
+                        } else if (row.tipologia.includes('½')) {
+                            rowStyle = 'bg-emerald-50/50 hover:bg-emerald-100/60';
+                            badgeColor = 'bg-emerald-200 text-emerald-900 font-semibold border border-emerald-300';
+                        } else {
+                            rowStyle = 'hover:bg-blue-50/40';
+                            badgeColor = 'bg-blue-100 text-blue-800 font-medium';
+                        }
 
                         htmlTabella += `
-                            <tr>
+                            <tr class="${rowStyle} transition-colors">
                                 <td class="p-2 font-mono font-bold text-blue-700">${row.codiceLezione}</td>
                                 <td class="p-2 font-medium text-slate-500">${row.numero}</td>
                                 <td class="p-2 font-semibold text-slate-800">${row.data}</td>
                                 <td class="p-2 text-slate-600">${row.giorno}</td>
                                 <td class="p-2 text-slate-500 font-medium">${row.periodo}</td>
                                 <td class="p-2 text-slate-800 font-medium">${row.argomento}</td>
-                                <td class="p-2"><span class="px-2 py-0.5 text-[10px] rounded-full ${badgeColor}">${row.tipologia}</span></td>
+                                <td class="p-2"><span class="px-2.5 py-1 text-[10px] rounded-md ${badgeColor}">${row.tipologia}</span></td>
                             </tr>`;
                     });
 
@@ -661,7 +719,6 @@
             }
         }
 
-        // Esportazione in foglio Excel
         function esportaExcel() {
             if (pianoGenerato.length === 0) return;
 
@@ -686,7 +743,6 @@
             XLSX.writeFile(wb, `${idPianoCorrente}_Piano_Didattico.xlsx`);
         }
 
-        // Funzioni Gestione LocalStorage Archivio
         function salvaInArchivio(pianoOggetto) {
             let archivio = JSON.parse(localStorage.getItem('pianiDidatticiArchivio')) || [];
             archivio.unshift(pianoOggetto);
