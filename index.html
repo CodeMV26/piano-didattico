@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generatore Piano Didattico con Valutazioni Programmate</title>
+    <title>Generatore Piano Didattico Strategico Ponderato</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (XLSX) per Esportazione Excel -->
@@ -16,8 +16,8 @@
         <!-- HEADER -->
         <header class="bg-gradient-to-r from-blue-900 via-indigo-800 to-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Piano Didattico Strategico</h1>
-                <p class="text-blue-200 text-xs md:text-sm mt-1">Generazione automatica lezioni, bilanciamento argomenti e programmazione interrogazioni</p>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Piano Didattico Strategico Pro</h1>
+                <p class="text-blue-200 text-xs md:text-sm mt-1">Ponderazione didattica avanzata (Teoria + Esercizi + Difficoltà) & Calendario automatico</p>
             </div>
             <div id="archivioPannello" class="flex gap-2">
                 <button onclick="caricaArchivioInModal()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-semibold backdrop-blur-md transition-all border border-white/20">
@@ -48,13 +48,13 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">N° Studenti *</label>
-                            <input type="number" id="numStudenti" value="24" min="1" oninput="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="number" id="numStudenti" value="24" min="1" oninput="aggiornaTuttoIlCalcolo()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Materia *</label>
-                        <select id="materiaSelect" onchange="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <select id="materiaSelect" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                             <option value="Matematica">Matematica (Scritto + Orale)</option>
                             <option value="Fisica_O">Fisica (Solo Orale - Test Rapidi)</option>
                             <option value="Fisica_SO">Fisica (Scritto + Orale)</option>
@@ -63,7 +63,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modalità D'Ora *</label>
-                        <select id="modalitaOraSelect" onchange="calcolaTempoValutazioni()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <select id="modalitaOraSelect" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
                             <option value="INTERA">Ora Intera (60 min Spiegazione / Interrogazione)</option>
                             <option value="DIVISA">Ora Divisa (30 min Spiegazione + 30 min Interrogazione)</option>
                         </select>
@@ -82,16 +82,16 @@
 
                         <div>
                             <label class="block text-xs text-slate-500 mb-1">Data Termine 1° Periodo (Quad/Trim) *</label>
-                            <input type="date" id="dataFinePeriodo1" value="2027-01-31" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm">
+                            <input type="date" id="dataFinePeriodo1" value="2027-01-31" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm">
                         </div>
 
                         <div>
                             <label class="block text-xs text-slate-500 mb-1">Minimo Voti Orali / Studente per Periodo *</label>
-                            <input type="number" id="votiOraliMinimi" value="2" min="1" max="5" oninput="calcolaTempoValutazioni()" class="w-full p-2 bg-emerald-50 border border-emerald-300 font-bold text-emerald-800 rounded-lg text-sm">
+                            <input type="number" id="votiOraliMinimi" value="2" min="1" max="5" oninput="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-emerald-50 border border-emerald-300 font-bold text-emerald-800 rounded-lg text-sm">
                         </div>
                     </div>
 
-                    <!-- BOX INFORMATIVO DETTAGLIO CALCOLO ORE INTERROGAZIONI -->
+                    <!-- BOX INFORMATIVO DETTAGLIO CALCOLO ORE -->
                     <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 space-y-2 text-xs shadow-sm">
                         <div id="badgeTargetVoti" class="font-bold text-amber-900 border-b border-amber-200 pb-1">Target: 2 Voti Orali Minimi per Studente / Periodo</div>
                         <div id="descrizioneValutazioni" class="text-amber-800 space-y-1"></div>
@@ -111,16 +111,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Inizio Anno *</label>
-                            <input type="date" id="dataInizio" value="2026-09-15" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium">
+                            <input type="date" id="dataInizio" value="2026-09-15" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium">
                         </div>
-                        <!-- MODIFICA 2: DATA FINE PROGRAMMA SPIEGAZIONI -->
                         <div>
                             <label class="block text-xs font-bold text-amber-700 uppercase mb-1">Fine Programma Spiegazioni *</label>
-                            <input type="date" id="dataFineProgramma" value="2027-05-15" class="w-full p-2 bg-amber-50/60 border border-amber-300 rounded-lg text-xs font-bold text-amber-900">
+                            <input type="date" id="dataFineProgramma" value="2027-05-15" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-amber-50/60 border border-amber-300 rounded-lg text-xs font-bold text-amber-900">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Fine Anno (Lezioni) *</label>
-                            <input type="date" id="dataFine" value="2027-06-08" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium">
+                            <input type="date" id="dataFine" value="2027-06-08" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium">
                         </div>
                     </div>
 
@@ -134,8 +133,8 @@
                                     document.write(`
                                         <div class="p-2 bg-slate-50 border rounded-lg text-center space-y-1">
                                             <div class="text-xs font-bold text-slate-700">${g}</div>
-                                            <input type="checkbox" id="giorno-${id}" ${id <= 4 ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded">
-                                            <select id="ore-giorno-${id}" class="w-full text-xs p-1 border rounded bg-white">
+                                            <input type="checkbox" id="giorno-${id}" ${id <= 4 ? 'checked' : ''} onchange="aggiornaTuttoIlCalcolo()" class="w-4 h-4 text-blue-600 rounded">
+                                            <select id="ore-giorno-${id}" onchange="aggiornaTuttoIlCalcolo()" class="w-full text-xs p-1 border rounded bg-white">
                                                 <option value="1">1 Ora</option>
                                                 <option value="2">2 Ore</option>
                                             </select>
@@ -150,28 +149,28 @@
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-500 uppercase">Vacanze Natale (Inizio - Fine)</label>
                             <div class="flex gap-1">
-                                <input type="date" id="vacNataleInizio" value="2026-12-23" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
-                                <input type="date" id="vacNataleFine" value="2027-01-06" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                                <input type="date" id="vacNataleInizio" value="2026-12-23" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                                <input type="date" id="vacNataleFine" value="2027-01-06" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
                             </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-500 uppercase">Vacanze Pasqua (Inizio - Fine)</label>
                             <div class="flex gap-1">
-                                <input type="date" id="vacPasquaInizio" value="2027-03-25" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
-                                <input type="date" id="vacPasquaFine" value="2027-03-30" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                                <input type="date" id="vacPasquaInizio" value="2027-03-25" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
+                                <input type="date" id="vacPasquaFine" value="2027-03-30" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-1.5 text-xs bg-slate-50 border rounded">
                             </div>
                         </div>
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-500 uppercase">Giorni Extra Festivi (Separati da virgola: YYYY-MM-DD)</label>
-                        <input type="text" id="giorniExtraFesta" value="2026-11-02, 2027-04-26, 2027-05-02" class="w-full p-2 bg-slate-50 border rounded text-xs">
+                        <input type="text" id="giorniExtraFesta" value="2026-11-02, 2027-04-26, 2027-05-02" onchange="aggiornaTuttoIlCalcolo()" class="w-full p-2 bg-slate-50 border rounded text-xs">
                     </div>
                 </div>
 
-                <!-- CARICAMENTO INDICE -->
+                <!-- CARICAMENTO INDICE & ESTRAZIONE -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center justify-between">
-                        <span class="flex items-center gap-2">📖 Libro & Indice Digitale</span>
+                        <span class="flex items-center gap-2">📖 Input Indice & Scansione OCR</span>
                         <span id="fotoCount" class="text-xs font-normal text-slate-500">0 foto caricate</span>
                     </h2>
 
@@ -181,7 +180,7 @@
                             <input type="text" id="titoloLibro" placeholder="Es. Fisica Multiversum 1" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Carica Foto Indice (Scansione OCR)</label>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Carica Foto Indice (OCR Space)</label>
                             <input type="file" id="fotoInput" accept="image/*" multiple onchange="gestisciFotoCaricate(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         </div>
                     </div>
@@ -194,8 +193,8 @@
                     <div id="ocrStatus" class="hidden text-center text-xs font-bold text-indigo-700 animate-pulse">Scansione in corso...</div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Indice Argomenti (1 per riga con Pag. Inizio) *</label>
-                        <textarea id="argomentiInput" rows="8" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none">Strumenti matematici pag.2
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Testo Indice / Pagine (Inserisci o Incolla)</label>
+                        <textarea id="argomentiInput" rows="5" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none">Strumenti matematici pag.2
 cap.1 Le grandezze fisiche pag.32
 cap.2 La Misura pag.64
 cap.3 La Luce pag.102
@@ -203,6 +202,55 @@ cap.4 I vettori e le forze pag.140
 cap.5 L'equilibrio dei solidi pag.180
 cap.6 L'equilibrio dei fluidi pag.210
 cap.7 La velocità pag.238</textarea>
+                    </div>
+
+                    <button onclick="popolaGrigliaDaTesto()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow">
+                        📋 Analizza e Popola Griglia Tabellare
+                    </button>
+                </div>
+
+                <!-- GRIGLIA TABELLARE INTERATTIVA PONDERATA -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b pb-2 gap-2">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <span>🎛️</span> Griglia Ponderazione Argomenti
+                            </h2>
+                            <p class="text-xs text-slate-500">Definisci teoria, esercizi e difficoltà per ciascun argomento.</p>
+                        </div>
+                        <button onclick="aggiungiRigaVuotaTabella()" class="px-3 py-1.5 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 rounded-lg text-xs font-bold border border-emerald-300 transition-all">
+                            + Aggiungi Argomento
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs bg-white rounded-xl overflow-hidden border border-slate-200">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 font-bold uppercase border-b">
+                                    <th class="p-2.5">Titolo Argomento</th>
+                                    <th class="p-2.5 w-16">Pag. Ini</th>
+                                    <th class="p-2.5 w-16">Pag. Fin</th>
+                                    <th class="p-2.5 w-20">Pag. Teoria</th>
+                                    <th class="p-2.5 w-20">Pag. Eserc.</th>
+                                    <th class="p-2.5 w-28">Difficoltà</th>
+                                    <th class="p-2.5 w-20 text-center bg-blue-50/50">Ore Calc.</th>
+                                    <th class="p-2.5 w-20 text-center bg-amber-50/50">Ore Man.</th>
+                                    <th class="p-2.5 w-10 text-center">✕</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpoTabellaArgomenti" class="divide-y divide-slate-100">
+                                <!-- Popolato dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-xl border flex flex-col sm:flex-row justify-between items-center text-xs gap-2">
+                        <div class="text-slate-600">
+                            Totale Ore Spiegazione Disponibili: <span id="lblOreSpiegazioneDisponibili" class="font-bold text-blue-700">0 Ore</span>
+                        </div>
+                        <div class="text-slate-600">
+                            Totale Ore Assegnate Argomenti: <span id="lblOreAssegnateTotali" class="font-bold text-emerald-700">0 Ore</span>
+                        </div>
                     </div>
 
                     <button onclick="generaEArchiviaPiano()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-extrabold text-base transition-all shadow-lg shadow-emerald-600/30">
@@ -264,38 +312,12 @@ cap.7 La velocità pag.238</textarea>
         let immaginiCaricate = [];
         let pianoGenerato = [];
         let idPianoCorrente = "";
+        let argomentiGriglia = [];
 
         window.onload = () => {
             aggiornaContatoreArchivio();
-            calcolaTempoValutazioni();
+            popolaGrigliaDaTesto();
         };
-
-        // MODIFICA 1: VISUALIZZA IL CALCOLO ANALITICO DELLE ORE DI INTERROGAZIONE
-        function calcolaTempoValutazioni() {
-            const numStud = parseInt(document.getElementById('numStudenti').value) || 24;
-            const votiMin = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
-            const modalitaOra = document.getElementById('modalitaOraSelect').value;
-            const mat = document.getElementById('materiaSelect').value;
-
-            const badge = document.getElementById('badgeTargetVoti');
-            const desc = document.getElementById('descrizioneValutazioni');
-
-            const totaleInterrogazioniPeriodo = numStud * votiMin;
-            let capOra = (modalitaOra === "DIVISA") ? 1 : 2;
-            if (mat === "Fisica_O") capOra = numStud;
-
-            const oreDedicatePeriodo = Math.ceil(totaleInterrogazioniPeriodo / capOra);
-            const oreDedicateAnno = oreDedicatePeriodo * 2;
-
-            badge.innerText = `Target: ${votiMin} Voti Orali Minimi per Studente / Periodo`;
-            desc.innerHTML = `
-                <div>• Totalità interrogazioni richieste: <strong>${totaleInterrogazioniPeriodo} interrogazioni/periodo</strong></div>
-                <div>• Capacità interrogazione: <strong>${capOra} student${capOra > 1 ? 'i' : 'e'}/ora</strong></div>
-                <div>• Ore necessarie 1° Periodo: <strong>${oreDedicatePeriodo} Ore</strong></div>
-                <div>• Ore necessarie 2° Periodo: <strong>${oreDedicatePeriodo} Ore</strong></div>
-                <div class="pt-1 font-bold text-amber-900 border-t border-amber-200"> Totale Ore Interrogazioni Anno: ${oreDedicateAnno} Ore</div>
-            `;
-        }
 
         function gestisciFotoCaricate(event) {
             const files = event.target.files;
@@ -356,6 +378,7 @@ cap.7 La velocità pag.238</textarea>
             }
             status.classList.add('hidden');
             document.getElementById('argomentiInput').value = testoComplessivo.trim();
+            popolaGrigliaDaTesto();
         }
 
         function isFesta(data) {
@@ -377,42 +400,212 @@ cap.7 La velocità pag.238</textarea>
             return extra.includes(yyyymmdd);
         }
 
-        function estraiArgomentiConPesi(rawText) {
+        // PARSING TESTO -> POPOLAMENTO INIZIALE STRUTTURATO
+        function popolaGrigliaDaTesto() {
+            const rawText = document.getElementById('argomentiInput').value.trim();
             const righe = rawText.split('\n').map(r => r.trim()).filter(r => r.length > 0);
-            const argomenti = [];
-
+            
+            const temporanei = [];
             for (let i = 0; i < righe.length; i++) {
                 const riga = righe[i];
                 const matchPag = riga.match(/(?:pag\.?|p\.|pagina)\s*(\d+)/i);
                 let pagina = matchPag ? parseInt(matchPag[1]) : null;
                 let titolo = riga.replace(/(?:pag\.?|p\.|pagina)\s*\d+/i, '').trim();
 
-                argomenti.push({
+                temporanei.push({
                     titolo: titolo || riga,
-                    paginaInizio: pagina,
-                    pagineTotali: 30
+                    pagIni: pagina,
+                    pagFin: null
                 });
             }
 
-            for (let i = 0; i < argomenti.length - 1; i++) {
-                if (argomenti[i].paginaInizio !== null && argomenti[i+1].paginaInizio !== null) {
-                    const diff = argomenti[i+1].paginaInizio - argomenti[i].paginaInizio;
-                    if (diff > 0) argomenti[i].pagineTotali = diff;
+            argomentiGriglia = [];
+            for (let i = 0; i < temporanei.length; i++) {
+                let pIni = temporanei[i].pagIni || (i * 30 + 1);
+                let pFin = null;
+
+                if (i < temporanei.length - 1 && temporanei[i+1].pagIni) {
+                    pFin = temporanei[i+1].pagIni - 1;
+                } else {
+                    pFin = pIni + 29;
+                }
+
+                let pagTot = Math.max(1, pFin - pIni + 1);
+                let pagTeoria = Math.round(pagTot * 0.6); // 60% stima teoria
+                let pagEserc = pagTot - pagTeoria;       // 40% stima esercizi
+
+                argomentiGriglia.push({
+                    titolo: temporanei[i].titolo,
+                    pagIni: pIni,
+                    pagFin: pFin,
+                    pagTeoria: pagTeoria,
+                    pagEserc: pagEserc,
+                    difficolta: 1.5, // Standard Medio
+                    oreManuali: null
+                });
+            }
+
+            renderGrigliaTabellare();
+            aggiornaTuttoIlCalcolo();
+        }
+
+        function aggiungiRigaVuotaTabella() {
+            const ultimaPag = argomentiGriglia.length > 0 ? argomentiGriglia[argomentiGriglia.length - 1].pagFin + 1 : 1;
+            argomentiGriglia.push({
+                titolo: `Nuovo Argomento ${argomentiGriglia.length + 1}`,
+                pagIni: ultimaPag,
+                pagFin: ultimaPag + 25,
+                pagTeoria: 15,
+                pagEserc: 10,
+                difficolta: 1.5,
+                oreManuali: null
+            });
+            renderGrigliaTabellare();
+            aggiornaTuttoIlCalcolo();
+        }
+
+        function rimuoviRigaGriglia(index) {
+            argomentiGriglia.splice(index, 1);
+            renderGrigliaTabellare();
+            aggiornaTuttoIlCalcolo();
+        }
+
+        function renderGrigliaTabellare() {
+            const tbody = document.getElementById('corpoTabellaArgomenti');
+            tbody.innerHTML = '';
+
+            argomentiGriglia.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 border-b';
+
+                tr.innerHTML = `
+                    <td class="p-2"><input type="text" value="${item.titolo}" onchange="aggiornaDatoGriglia(${idx}, 'titolo', this.value)" class="w-full p-1 bg-slate-50 border rounded text-xs font-semibold"></td>
+                    <td class="p-2"><input type="number" value="${item.pagIni}" onchange="aggiornaDatoGriglia(${idx}, 'pagIni', parseInt(this.value))" class="w-full p-1 bg-slate-50 border rounded text-xs text-center"></td>
+                    <td class="p-2"><input type="number" value="${item.pagFin}" onchange="aggiornaDatoGriglia(${idx}, 'pagFin', parseInt(this.value))" class="w-full p-1 bg-slate-50 border rounded text-xs text-center"></td>
+                    <td class="p-2"><input type="number" value="${item.pagTeoria}" onchange="aggiornaDatoGriglia(${idx}, 'pagTeoria', parseInt(this.value))" class="w-full p-1 bg-blue-50/50 border border-blue-200 rounded text-xs text-center font-bold text-blue-800"></td>
+                    <td class="p-2"><input type="number" value="${item.pagEserc}" onchange="aggiornaDatoGriglia(${idx}, 'pagEserc', parseInt(this.value))" class="w-full p-1 bg-slate-50 border rounded text-xs text-center"></td>
+                    <td class="p-2">
+                        <select onchange="aggiornaDatoGriglia(${idx}, 'difficolta', parseFloat(this.value))" class="w-full p-1 bg-slate-50 border rounded text-xs font-semibold">
+                            <option value="1.0" ${item.difficolta === 1.0 ? 'selected' : ''}>Facile (1.0x)</option>
+                            <option value="1.5" ${item.difficolta === 1.5 ? 'selected' : ''}>Media (1.5x)</option>
+                            <option value="2.0" ${item.difficolta === 2.0 ? 'selected' : ''}>Alta (2.0x)</option>
+                        </select>
+                    </td>
+                    <td class="p-2 text-center font-bold text-blue-900 bg-blue-50/30" id="lblOreCalc_${idx}">0h</td>
+                    <td class="p-2 text-center bg-amber-50/30">
+                        <input type="number" value="${item.oreManuali !== null ? item.oreManuali : ''}" placeholder="Auto" onchange="aggiornaDatoGriglia(${idx}, 'oreManuali', this.value !== '' ? parseInt(this.value) : null)" class="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-center font-bold text-amber-900">
+                    </td>
+                    <td class="p-2 text-center">
+                        <button onclick="rimuoviRigaGriglia(${idx})" class="text-red-500 hover:text-red-700 font-bold">✕</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function aggiornaDatoGriglia(index, campo, valore) {
+            argomentiGriglia[index][campo] = valore;
+            
+            // Auto aggiornamento pagine teoria/esercizi se cambiano pagIni o pagFin
+            if (campo === 'pagIni' || campo === 'pagFin') {
+                let pagTot = Math.max(1, argomentiGriglia[index].pagFin - argomentiGriglia[index].pagIni + 1);
+                argomentiGriglia[index].pagTeoria = Math.round(pagTot * 0.6);
+                argomentiGriglia[index].pagEserc = pagTot - argomentiGriglia[index].pagTeoria;
+                renderGrigliaTabellare();
+            }
+
+            aggiornaTuttoIlCalcolo();
+        }
+
+        // MOTORE DI CALCOLO RIGOROSO PONDERATO
+        function aggiornaTuttoIlCalcolo() {
+            const numStud = parseInt(document.getElementById('numStudenti').value) || 24;
+            const votiMin = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
+            const modalitaOra = document.getElementById('modalitaOraSelect').value;
+            const mat = document.getElementById('materiaSelect').value;
+
+            const valInizio = new Date(document.getElementById('dataInizio').value);
+            const valFine = new Date(document.getElementById('dataFine').value);
+            const valFineProg = new Date(document.getElementById('dataFineProgramma').value);
+            const dataFinePeriodo1 = new Date(document.getElementById('dataFinePeriodo1').value);
+
+            // 1. Dettaglio Ore Interrogazione
+            const totaleInterrogazioniPeriodo = numStud * votiMin;
+            let capOra = (modalitaOra === "DIVISA") ? 1 : 2;
+            if (mat === "Fisica_O") capOra = numStud;
+
+            const oreDedicatePeriodo = Math.ceil(totaleInterrogazioniPeriodo / capOra);
+            const oreInterrogazioniAnno = oreDedicatePeriodo * 2;
+
+            document.getElementById('badgeTargetVoti').innerText = `Target: ${votiMin} Voti Orali Minimi per Studente / Periodo`;
+            document.getElementById('descrizioneValutazioni').innerHTML = `
+                <div>• Totalità interrogazioni richieste: <strong>${totaleInterrogazioniPeriodo} interrogazioni/periodo</strong></div>
+                <div>• Capacità interrogazione: <strong>${capOra} student${capOra > 1 ? 'i' : 'e'}/ora</strong></div>
+                <div>• Ore necessarie 1° Periodo: <strong>${oreDedicatePeriodo} Ore</strong> | 2° Periodo: <strong>${oreDedicatePeriodo} Ore</strong></div>
+                <div class="pt-1 font-bold text-amber-900 border-t border-amber-200"> Totale Ore Interrogazioni Anno: ${oreInterrogazioniAnno} Ore</div>
+            `;
+
+            // 2. Conteggio Ore Calendario Scolastico
+            const mappaOreGiorni = {};
+            for (let i = 1; i <= 6; i++) {
+                const chk = document.getElementById(`giorno-${i}`);
+                if (chk && chk.checked) {
+                    const select = document.getElementById(`ore-giorno-${i}`);
+                    mappaOreGiorni[i] = select ? parseInt(select.value) : 1;
                 }
             }
-            return argomenti;
+
+            let oreTotaliAnno = 0;
+            let oreTotaliEntroDataProg = 0;
+
+            let dataTemp = new Date(valInizio);
+            while (dataTemp <= valFine) {
+                const day = dataTemp.getDay();
+                if (mappaOreGiorni[day] && !isFesta(dataTemp)) {
+                    const nOre = mappaOreGiorni[day];
+                    oreTotaliAnno += nOre;
+                    if (dataTemp <= valFineProg) {
+                        oreTotaliEntroDataProg += nOre;
+                    }
+                }
+                dataTemp.setDate(dataTemp.getDate() + 1);
+            }
+
+            // Ore di spiegazione fruibili prima del termine programma
+            const oreValutazioniEntroDataProg = Math.ceil((oreTotaliEntroDataProg / oreTotaliAnno) * oreInterrogazioniAnno);
+            const oreDisponibiliSpiegazioni = Math.max(5, oreTotaliEntroDataProg - oreValutazioniEntroDataProg);
+
+            document.getElementById('lblOreSpiegazioneDisponibili').innerText = `${oreDisponibiliSpiegazioni} Ore`;
+
+            // 3. Formula di Ponderazione Pagine & Complessità
+            let sommaPesiDidattici = 0;
+            argomentiGriglia.forEach(item => {
+                // PESO FORMULA: (Teoria * 1.0 + Esercizi * 0.25) * Coeff Difficoltà
+                const peso = ((item.pagTeoria * 1.0) + (item.pagEserc * 0.25)) * item.difficolta;
+                item.pesoCalcolato = peso;
+                sommaPesiDidattici += peso;
+            });
+
+            let oreAssegnateTotali = 0;
+            argomentiGriglia.forEach((item, idx) => {
+                let oreFinali = 0;
+                if (item.oreManuali !== null && item.oreManuali > 0) {
+                    oreFinali = item.oreManuali;
+                } else {
+                    const quotaPerc = sommaPesiDidattici > 0 ? (item.pesoCalcolato / sommaPesiDidattici) : 0;
+                    oreFinali = Math.max(1, Math.round(quotaPerc * oreDisponibiliSpiegazioni));
+                }
+                item.oreAssegnateFinali = oreFinali;
+                oreAssegnateTotali += oreFinali;
+
+                const lbl = document.getElementById(`lblOreCalc_${idx}`);
+                if (lbl) lbl.innerText = `${oreFinali}h`;
+            });
+
+            document.getElementById('lblOreAssegnateTotali').innerText = `${oreAssegnateTotali} Ore`;
         }
 
-        function generaSiglaScuola(nome) {
-            return nome.split(' ').map(w => w.charAt(0).toUpperCase()).join('').substring(0, 4) || "SCH";
-        }
-
-        function generaIDUnivocoProgressivo(sigla, classe) {
-            const timestamp = Date.now().toString().slice(-4);
-            return `PLN-${sigla}-${classe.toUpperCase()}-${timestamp}`;
-        }
-
-        // GENERATORE COMPLETO CON FINE PROGRAMMA E COLORAZIONE
+        // GENERAZIONE E SALVATAGGIO DEL PIANO COMPLETO
         function generaEArchiviaPiano() {
             const scuola = document.getElementById('nomeScuola').value.trim();
             const classe = document.getElementById('nomeClasse').value.trim();
@@ -420,26 +613,23 @@ cap.7 La velocità pag.238</textarea>
             const nomeMateria = document.getElementById('materiaSelect').options[document.getElementById('materiaSelect').selectedIndex].text;
             const modalitaOra = document.getElementById('modalitaOraSelect').value;
             const libro = document.getElementById('titoloLibro').value.trim();
-            const argomentiRaw = document.getElementById('argomentiInput').value.trim();
             const valInizio = document.getElementById('dataInizio').value;
             const valFine = document.getElementById('dataFine').value;
-            const valFineProg = document.getElementById('dataFineProgramma').value; // MODIFICA 2
+            const valFineProg = document.getElementById('dataFineProgramma').value;
             const numStudenti = parseInt(document.getElementById('numStudenti').value) || 24;
-            
+            const votiOraliMinimi = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
             const dataFinePeriodo1 = new Date(document.getElementById('dataFinePeriodo1').value);
             const dataFineProgrammaSpiegazioni = new Date(valFineProg);
-            const votiOraliMinimi = parseInt(document.getElementById('votiOraliMinimi').value) || 2;
 
-            if (!scuola || !classe || !libro || !argomentiRaw || !valInizio || !valFine || !valFineProg) {
-                alert("Compila tutti i campi obbligatori compresa la Data di Fine Programma.");
+            if (!scuola || !classe || !libro || argomentiGriglia.length === 0 || !valInizio || !valFine || !valFineProg) {
+                alert("Compila tutti i campi obbligatori (Scuola, Classe, Libro, Date e almeno un Argomento in tabella).");
                 return;
             }
 
             const siglaScuola = generaSiglaScuola(scuola);
             const inizialeMateria = nomeMateria.charAt(0).toUpperCase();
-            const argomentiPonderati = estraiArgomentiConPesi(argomentiRaw);
-            const totalePagineLavoro = argomentiPonderati.reduce((acc, curr) => acc + curr.pagineTotali, 0);
 
+            // Calcolo del calendario
             let dataTemp = new Date(valInizio);
             const dataFine = new Date(valFine);
 
@@ -452,8 +642,6 @@ cap.7 La velocità pag.238</textarea>
                 }
             }
 
-            // MODIFICA 2: CALCOLO ORE UTILI ESCLUSIVAMENTE FINO ALLA FINE PROGRAMMA
-            let oreTotaliSpiegazioneFinoADataFineProg = 0;
             let oreTotaliP1 = 0;
             let oreTotaliP2 = 0;
 
@@ -463,10 +651,6 @@ cap.7 La velocità pag.238</textarea>
                     const nOre = mappaOreGiorni[day];
                     if (dataTemp <= dataFinePeriodo1) oreTotaliP1 += nOre;
                     else oreTotaliP2 += nOre;
-
-                    if (dataTemp <= dataFineProgrammaSpiegazioni) {
-                        oreTotaliSpiegazioneFinoADataFineProg += nOre;
-                    }
                 }
                 dataTemp.setDate(dataTemp.getDate() + 1);
             }
@@ -476,18 +660,7 @@ cap.7 La velocità pag.238</textarea>
 
             const oreInterrogazioneP1 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
             const oreInterrogazioneP2 = Math.ceil((numStudenti * votiOraliMinimi) / studentiPerOra);
-            
-            // Sottraiamo le ore di valutazione stimata entro la data fine programma
-            const oreValutazioniEntroDataProg = Math.ceil((oreTotaliSpiegazioneFinoADataFineProg / (oreTotaliP1 + oreTotaliP2)) * (oreInterrogazioneP1 + oreInterrogazioneP2));
-            const oreEffettiveSoloSpiegazione = Math.max(10, oreTotaliSpiegazioneFinoADataFineProg - oreValutazioniEntroDataProg);
 
-            // ASSEGNAZIONE DELLE ORE RIGOROSAMENTE PONDERATA
-            argomentiPonderati.forEach(arg => {
-                const perc = arg.pagineTotali / totalePagineLavoro;
-                arg.oreTarget = Math.max(1, Math.round(perc * oreEffettiveSoloSpiegazione));
-            });
-
-            // GENERAZIONE CALENDARIO LEZIONI
             let dataCorrente = new Date(valInizio);
             pianoGenerato = [];
             idPianoCorrente = generaIDUnivocoProgressivo(siglaScuola, classe);
@@ -531,8 +704,8 @@ cap.7 La velocità pag.238</textarea>
                     for (let h = 1; h <= oreInQuestoGiorno; h++) {
                         oreContatorePeriodo++;
                         
-                        let idxMod = Math.min(argIndex, argomentiPonderati.length - 1);
-                        let argObj = argomentiPonderati[idxMod];
+                        let idxMod = Math.min(argIndex, argomentiGriglia.length - 1);
+                        let argObj = argomentiGriglia[idxMod];
 
                         let tipologia = "Spiegazione";
                         let dettaglioArgomento = "";
@@ -561,11 +734,9 @@ cap.7 La velocità pag.238</textarea>
                             const argGiaFatti = Array.from(argomentiSpiegatiSet).slice(-3).join(" • ");
                             dettaglioArgomento = `VERIFICA SCRITTA di ${periodoCorrente} su: [ ${argGiaFatti} ]`;
                         } else if (dataCorrente > dataFineProgrammaSpiegazioni) {
-                            // MODIFICA 2: ORE SUCCESSIVE ALLA FINE DEL PROGRAMMA
                             tipologia = "Ripasso Finale / Recupero";
                             dettaglioArgomento = `RIPASSO GENERALE E CONSOLIDAMENTO: Preparazione agli scrutinii finali`;
                         } else {
-                            // ORA DI SPIEGAZIONE ORDINARIA
                             argomentiSpiegatiSet.add(argObj.titolo);
                             oreSpiegateCapitolo++;
 
@@ -578,7 +749,7 @@ cap.7 La velocità pag.238</textarea>
                                 dettaglioArgomento = argObj.titolo;
                             }
 
-                            if (oreSpiegateCapitolo >= argObj.oreTarget && argIndex < argomentiPonderati.length - 1) {
+                            if (oreSpiegateCapitolo >= argObj.oreAssegnateFinali && argIndex < argomentiGriglia.length - 1) {
                                 argIndex++;
                                 oreSpiegateCapitolo = 0;
                             }
@@ -611,7 +782,6 @@ cap.7 La velocità pag.238</textarea>
                 dataCorrente.setDate(dataCorrente.getDate() + 1);
             }
 
-            // SALVATAGGIO IN LOCAL STORAGE
             const pianoOggetto = {
                 id: idPianoCorrente,
                 scuola: scuola,
@@ -626,14 +796,13 @@ cap.7 La velocità pag.238</textarea>
 
             document.getElementById('badgeIdPiano').innerText = idPianoCorrente;
             document.getElementById('badgeOreTotali').innerText = `${pianoGenerato.length} Ore`;
-            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Target: ${votiOraliMinimi} Voti/Periodo • Fine Programma: ${valFineProg}`;
+            document.getElementById('subtitolioRisultato').innerText = `Scuola: ${scuola} • Classe: ${classe} • Materia: ${nomeMateria} • Target: ${votiOraliMinimi} Voti/Periodo • Fine Prog: ${valFineProg}`;
 
             renderVistaOrganizzata();
             document.getElementById('risultatiSection').classList.remove('hidden');
             document.getElementById('btnExcel').classList.remove('hidden');
         }
 
-        // MODIFICA 3: COLORAZIONE DISTINTA PER TIPOLOGIA DI LEZIONE
         function renderVistaOrganizzata() {
             const contenitore = document.getElementById('vistaOrganizzata');
             contenitore.innerHTML = '';
@@ -680,7 +849,6 @@ cap.7 La velocità pag.238</textarea>
                         let rowStyle = '';
                         let badgeColor = '';
 
-                        // MODIFICA 3: COLORAZIONE DELLE RIGHE E BADGE
                         if (row.tipologia.includes('Interrogazione') || row.tipologia.includes('Test Breve')) {
                             rowStyle = 'bg-amber-50/70 hover:bg-amber-100/80';
                             badgeColor = 'bg-amber-200 text-amber-900 font-extrabold border border-amber-300 shadow-sm';
@@ -717,6 +885,15 @@ cap.7 La velocità pag.238</textarea>
 
                 contenitore.appendChild(secMese);
             }
+        }
+
+        function generaSiglaScuola(nome) {
+            return nome.split(' ').map(w => w.charAt(0).toUpperCase()).join('').substring(0, 4) || "SCH";
+        }
+
+        function generaIDUnivocoProgressivo(sigla, classe) {
+            const timestamp = Date.now().toString().slice(-4);
+            return `PLN-${sigla}-${classe.toUpperCase()}-${timestamp}`;
         }
 
         function esportaExcel() {
